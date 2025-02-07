@@ -2,20 +2,12 @@
 from time import strftime
 from datetime import *
 from tkinter import *
-from tkinter import ttk, filedialog
+from tkinter import ttk
 from tkinter import messagebox
 from PIL import ImageTk, Image
-# import cv2
-from openpyxl import load_workbook, Workbook
-import openpyxl
 import mysql.connector
-# import os
-from deepface import DeepFace
-from mysql.connector import Error
-
 import cv2
 import numpy as np
-import insightface
 from insightface.app import FaceAnalysis
 import os
 
@@ -636,7 +628,7 @@ class attendance:
         frame_count = 0
         N = 5
         face_db = {}
-        embedding_dir = 'embeddings/'
+        embedding_dir = 'DataEmbeddings/'
         for file in os.listdir(embedding_dir):
             if file.endswith('_embedding.npy'):
                 student_id = file.split('_embedding.npy')[0]

@@ -2,8 +2,8 @@ from time import strftime
 from datetime import datetime
 from tkinter import *
 from PIL import ImageTk, Image
-from Test.attendance import attendance
-from Test.traindata import traindata
+from attendance import attendance
+from traindata import traindata
 from student_view import Student_View
 import os
 import json
