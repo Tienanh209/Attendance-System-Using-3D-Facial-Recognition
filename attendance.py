@@ -1,4 +1,5 @@
 # attendance
+import json
 from time import strftime
 from datetime import *
 from tkinter import *
@@ -79,15 +80,17 @@ class attendance:
 
 
         # Find section
+        # Find section - Use ONLY the Combobox
         search_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE, text="Find section class",
                                   font=("times new roman", 12, "bold"))
         search_frame.place(x=910, y=90, width=250, height=80)
 
+        self.var_section_class = StringVar()  # Keep this for the Combobox's value
         self.cbb_section_class = ttk.Combobox(search_frame, textvariable=self.var_section_class, state='readonly')
         self.cbb_section_class.place(x=5, y=15, width=190, height=30)
-        self.ent_section_class = Entry(search_frame, textvariable=self.var_section_class, fg='black', border=0, bg='white',
-                              font=('Microsoft YaHei UI Light', 14))
-        self.ent_section_class.place(x=5, y=15, width=190, height=30)
+        # REMOVE the Entry widget:
+        # self.ent_section_class = Entry(search_frame, textvariable=self.var_section_class, fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14))
+        # self.ent_section_class.place(x=5, y=15, width=190, height=30)  # REMOVE THIS LINE
 
         img_search = Image.open('./ImageDesign/search_icon.png')
         img_search = img_search.resize((27, 27), Image.Resampling.LANCZOS)
@@ -95,7 +98,7 @@ class attendance:
         btn_report = Button(search_frame, command=self.search, image=self.img_searchtk, borderwidth=0)
         btn_report.place(x=200, y=15)
 
-        self.load_class_subjects()
+        self.load_class_subjects()  # Load subjects AFTER creating the Combobox
 
         self.lbl_time_session = Label(self.left_frame, text="", fg='black', border=0, bg='white',font=('Microsoft YaHei UI Light', 14))
         self.lbl_time_session.place(x=350, y=532)
@@ -171,38 +174,14 @@ class attendance:
                                     font=("times new roman", 12), bg="lightblue")
         self.export_btn.place(x=1270, y=720, width=180, height=40)
 
-    # import json
-
-    # def load_class_subjects(self):
-    #     try:
-    #         conn = mysql.connector.connect(
-    #             host='localhost',
-    #             user='root',
-    #             password='',
-    #             database='face_recognition_sys',
-    #             port='3306'
-    #         )
-    #         if conn.is_connected():
-    #             my_cursor = conn.cursor()
-    #             my_cursor.execute("SELECT id_class_subject FROM class_subject")
-    #             subjects = my_cursor.fetchall()
-    #
-    #             # Thêm danh sách môn học vào combobox
-    #             self.cbb_section_class['values'] = [subject[0] for subject in subjects]
-    #
-    #     finally:
-    #         if conn.is_connected():
-    #             my_cursor.close()
-    #             conn.close()
     import json
+
     def load_class_subjects(self):
         try:
-            # Load teacher_id from config.json
             with open("config.json", "r") as config_file:
-                config_data = self.json.load(config_file)
+                config_data = json.load(config_file)  # Use json.load directly
                 teacher_id = config_data['teacher_id']
 
-            # Connect to the database
             conn = mysql.connector.connect(
                 host='localhost',
                 user='root',
@@ -212,15 +191,17 @@ class attendance:
             )
             if conn.is_connected():
                 my_cursor = conn.cursor()
-                # Load subjects based on the teacher_id from config
                 my_cursor.execute("SELECT id_class_subject FROM class_subject WHERE id_teacher = %s", (teacher_id,))
                 subjects = my_cursor.fetchall()
+                self.cbb_section_class['values'] = [subject[0] for subject in subjects]  # Populate Combobox
 
-                # Add the subject IDs to the combobox
-                self.cbb_section_class['values'] = [subject[0] for subject in subjects]
+        except (FileNotFoundError, json.JSONDecodeError, mysql.connector.Error) as e:  # Handle potential errors
+            print(f"Error loading subjects: {e}")
+            messagebox.showerror("Error", f"Could not load class subjects: {e}") # Show a user-friendly error message
+            self.cbb_section_class['values'] = [] # Set to empty list to avoid errors later
 
         finally:
-            if conn.is_connected():
+            if conn and conn.is_connected():  # Check if connection exists before closing
                 my_cursor.close()
                 conn.close()
 
@@ -497,126 +478,7 @@ class attendance:
     models = ["VGG-Face", "Facenet", "Facenet512", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"]
     metrics = ["cosine", "euclidean", "euclidean_l2"]
     img = "DataProcessed/.jpg"
-
-    # def realtime_face_recognition(self):
-    #     self.isClicked = False
-    #     video_capture = cv2.VideoCapture(0)
-    #     frame_count = 0
-    #     N = 5
-    #     while True:
-    #         ret, frame = video_capture.read()
-    #         if not ret:
-    #             break
-    #
-    #         frame = cv2.resize(frame, (800, 500))
-    #         frame2D = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    #         frame_3c = cv2.cvtColor(frame2D, cv2.COLOR_GRAY2BGR)
-    #         frame_count += 1
-    #
-    #         if frame_count % N == 0:
-    #             people = DeepFace.find(img_path=frame_3c,
-    #                                    db_path="DataProcessed/",
-    #                                    detector_backend=self.backends[0],
-    #                                    align=True,
-    #                                    model_name=self.models[0],
-    #                                    distance_metric='euclidean_l2',
-    #                                    enforce_detection=False)
-    #             detected_ids = []
-    #
-    #             for person in people:
-    #                 x = person['source_x'][0]
-    #                 y = person['source_y'][0]
-    #                 w = person['source_w'][0]
-    #                 h = person['source_h'][0]
-    #                 # for MacOS
-    #                 # name = person['identity'][0].split('/')[1]
-    #                 # detected_ids.append(name)
-    #                 # for Window
-    #                 get_folder = person['identity'][0].split('/')[1]
-    #                 name = os.path.basename(os.path.dirname(get_folder))
-    #                 name = person['identity'][0].split('/')[1]
-    #                 detected_ids.append(name)
-    #
-    #                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-    #                 cv2.putText(frame, name, (x, y), cv2.FONT_ITALIC, 1, (0, 0, 255), 2)
-    #
-    #             current_time = datetime.now()
-    #
-    #             # Kiểm tra và cập nhật thời gian nhận diện liên tục
-    #             for student_id in detected_ids:
-    #                 if student_id in self.recognition_start_time:
-    #                     if (current_time - self.recognition_start_time[student_id]).total_seconds() >= 2:
-    #                         self.update_attendance(student_id)
-    #                         self.recognition_start_time.pop(student_id)  # Reset thời gian nhận diện cho ID này
-    #                 else:
-    #                     self.recognition_start_time[student_id] = current_time
-    #
-    #             # Xóa ID không còn được nhận diện nữa
-    #             for student_id in list(self.recognition_start_time.keys()):
-    #                 if student_id not in detected_ids:
-    #                     self.recognition_start_time.pop(student_id)
-    #
-    #             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    #             rgb_frame = Image.fromarray(rgb_frame)
-    #             tk_frame = ImageTk.PhotoImage(rgb_frame)
-    #
-    #             self.panel['image'] = tk_frame
-    #             self.panel.update()
-    #
-    #         if cv2.waitKey(1) & 0xFF == ord('q'):
-    #             break
-    #         if self.isClicked:
-    #             break
-    #
-    #     video_capture.release()
-    #     cv2.destroyAllWindows()
-
-
-    # def realtime_face_recognition(self):
-    #     def recognize_face(face_embedding, known_faces, threshold=1.0):
-    #         for student_id, db_embedding in known_faces.items():
-    #             dist = np.linalg.norm(face_embedding - db_embedding)
-    #             if dist < threshold:
-    #                 return student_id, dist
-    #         return "Unknown", None
-    #     face_db = {}
-    #     embedding_dir = 'embeddings/'
-    #     for file in os.listdir(embedding_dir):
-    #         if file.endswith('_embedding.npy'):
-    #             student_id = file.split('_embedding.npy')[0]
-    #             face_db[student_id] = np.load(os.path.join(embedding_dir, file))
-    #
-    #     app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
-    #     app.prepare(ctx_id=0, det_size=(640, 640))
-    #
-    #     cap = cv2.VideoCapture(1)
-    #     while True:
-    #         ret, frame = cap.read()
-    #
-    #         faces = app.get(frame)
-    #         # Vẽ các ô nhận diện lên hình ảnh
-    #         # frame_with_faces = frame
-    #         frame_with_faces = app.draw_on(frame, faces)
-    #
-    #         for face in faces:
-    #             face_embedding = face.normed_embedding
-    #             face.bbox = face.bbox.astype(int)
-    #             student_id, dist = recognize_face(face_embedding, face_db)
-    #
-    #             if face.bbox is not None and len(face.bbox) >= 4:
-    #                 x1, y1, x2, y2 = map(int, face.bbox)
-    #
-    #                 cv2.putText(frame_with_faces, f'{student_id}', (x1, y1 - 10),
-    #                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    #                 cv2.rectangle(frame_with_faces, (x1, y1), (x2, y2), (255, 0, 0), 2)
-    #
-    #         cv2.imshow('Camera', frame_with_faces)
-    #
-    #         if cv2.waitKey(1) & 0xFF == ord('q'):
-    #             break
-    #
-    #     cap.release()
-    #     cv2.destroyAllWindows()
+    # ham nhan dien quan trong
     def realtime_face_recognition(self):
         def recognize_face(face_embedding, known_faces, threshold=1.0):
             for student_id, db_embedding in known_faces.items():
@@ -671,7 +533,7 @@ class attendance:
 
                     self.recognized_students.extend(detected_ids)
                     self.recognized_students = list(set(self.recognized_students))  # Loại bỏ trùng lặp
-                # check file ben phai 
+                # check file ben phai
                 current_time = datetime.now()
                 for student_id in detected_ids:
                     if student_id in self.recognition_start_time:

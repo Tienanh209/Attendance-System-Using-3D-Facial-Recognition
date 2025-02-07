@@ -1,3 +1,4 @@
+#student_view.py
 import tkinter as tk
 from tkinter import ttk
 from PIL import ImageTk, Image
@@ -44,9 +45,6 @@ class Student_View:
         self.section_class_combobox.grid(row=0, column=1, padx=10, sticky='w')
         self.section_class_combobox.bind('<<ComboboxSelected>>', self.search_by_section_class)
 
-        # search_button_section = tk.Button(search_frame, text="Search", command=self.search_by_section_class,
-        #                                   font=('Arial', 12), bg='#fff9c4')
-        # search_button_section.grid(row=0, column=2, padx=10, sticky='w')
 
         # Search by student ID or Name
         search_label_student = tk.Label(search_frame, text="Find students:", font=('Arial', 12, 'bold'), bg='#f0f0f0')
