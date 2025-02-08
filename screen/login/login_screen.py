@@ -5,7 +5,7 @@ from tkinter import messagebox
 from PIL import ImageTk, Image
 import mysql.connector
 import json
-from homepage import FaceRecognitionSystem
+from screen.home_screen import FaceRecognitionSystem
 
 
 class LoginWindow:
@@ -30,7 +30,7 @@ class LoginWindow:
         lbl_time.place(x=800, y=40)
         self.update_time(lbl_time)
 
-        img = Image.open('ImageDesign/logo-ctu.png')
+        img = Image.open('./assets/ImageDesign/logo-ctu.png')
         img = img.resize((400, 400))
         self.imgtk = ImageTk.PhotoImage(img)
         logo_label = Label(self.root, image=self.imgtk, bg='white', width=400, height=400)
@@ -109,7 +109,10 @@ class LoginWindow:
             self.ent_code.config(show="*")  # Ẩn ký tự khi nhập mật khẩu
 
 
+def main_login():
+    root = Tk()  # Tạo cửa sổ Tkinter
+    app = LoginWindow(root)  # Khởi tạo đối tượng
+    root.mainloop()  # Bắt đầu vòng lặp Tkinter
+
 if __name__ == "__main__":
-    root = Tk()
-    obj = LoginWindow(root)
-    root.mainloop()
+    main_login()  # Gọi hàm main để chạy ứng dụng

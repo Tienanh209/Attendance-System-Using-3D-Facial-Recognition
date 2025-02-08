@@ -128,8 +128,8 @@ class Student_View:
 
     def load_teacher_id(self):
         # Read teacher_id from config file
-        if os.path.exists('config.json'):
-            with open('config.json', 'r') as f:
+        if os.path.exists('../login/config.json'):
+            with open('../login/config.json', 'r') as f:
                 config = json.load(f)
                 return config.get('teacher_id', 'Unknown')
         return 'Unknown'

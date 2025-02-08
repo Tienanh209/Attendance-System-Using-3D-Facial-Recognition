@@ -32,8 +32,8 @@ class traindata:
         app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
         app.prepare(ctx_id=1, det_size=(640, 640))
 
-        data_dir = 'Data/'
-        embedding_dir = 'DataEmbeddings/'
+        data_dir = '../assets/Data/'
+        embedding_dir = '../assets/DataEmbeddings/'
 
         if not os.path.exists(embedding_dir):
             os.makedirs(embedding_dir)

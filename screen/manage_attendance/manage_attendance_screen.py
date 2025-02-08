@@ -30,9 +30,19 @@ class attendance:
         self.id_session = StringVar()
 
         # ======= background
-        img = Image.open('./ImageDesign/img.png')
+        # img = Image.open('../../assets/ImageDesign/img.png')
+        #
+        #
+        # img = img.resize((1530, 790))
 
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Lấy thư mục chứa home_screen.py
+        img = os.path.join(BASE_DIR,'..', '..', 'assets', 'ImageDesign', 'img.png')
+        img = os.path.abspath(img)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
+        if not os.path.exists(img):
+            print("File không tồn tại:", img)
+
+        img = Image.open(img)
         img = img.resize((1530, 790))
 
         self.imgtk = ImageTk.PhotoImage(img)
@@ -92,7 +102,7 @@ class attendance:
         # self.ent_section_class = Entry(search_frame, textvariable=self.var_section_class, fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14))
         # self.ent_section_class.place(x=5, y=15, width=190, height=30)  # REMOVE THIS LINE
 
-        img_search = Image.open('./ImageDesign/search_icon.png')
+        img_search = Image.open('../../assets/ImageDesign/search_icon.png')
         img_search = img_search.resize((27, 27), Image.Resampling.LANCZOS)
         self.img_searchtk = ImageTk.PhotoImage(img_search)
         btn_report = Button(search_frame, command=self.search, image=self.img_searchtk, borderwidth=0)
@@ -178,7 +188,7 @@ class attendance:
 
     def load_class_subjects(self):
         try:
-            with open("config.json", "r") as config_file:
+            with open("../login/config.json", "r") as config_file:
                 config_data = json.load(config_file)  # Use json.load directly
                 teacher_id = config_data['teacher_id']
 
@@ -444,8 +454,8 @@ class attendance:
 
     def load_teacher_id(self):
         # Đọc thông tin từ tệp cấu hình
-        if os.path.exists('config.json'):
-            with open('config.json', 'r') as f:
+        if os.path.exists('../login/config.json'):
+            with open('../login/config.json', 'r') as f:
                 config = self.json.load(f)
                 return config.get('teacher_id', 'Unknown')
         return 'Unknown'
@@ -490,7 +500,7 @@ class attendance:
         frame_count = 0
         N = 5
         face_db = {}
-        embedding_dir = 'DataEmbeddings/'
+        embedding_dir = '../../assets/DataEmbeddings/'
         for file in os.listdir(embedding_dir):
             if file.endswith('_embedding.npy'):
                 student_id = file.split('_embedding.npy')[0]
