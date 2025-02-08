@@ -1,3 +1,4 @@
+import os
 from time import strftime
 from datetime import datetime
 from tkinter import *
@@ -30,9 +31,21 @@ class LoginWindow:
         lbl_time.place(x=800, y=40)
         self.update_time(lbl_time)
 
-        img = Image.open('./assets/ImageDesign/logo-ctu.png')
+        # BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        #
+        # # Tạo đường dẫn tuyệt đối đến tệp hình ảnh logo-ctu.png
+        # img_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'logo-ctu.png')
+        # img_path = os.path.abspath(img_path)  # Chuẩn hóa đường dẫn thành tuyệt đối
+        # img = Image.open(img_path)
+        # img = img.resize((400, 400))
+        # self.imgtk = ImageTk.PhotoImage(img)
+
+        BASE_DIR2 = os.path.dirname(os.path.abspath(__file__))
+        img_path = os.path.join(BASE_DIR2,'..', '..', 'assets', 'ImageDesign', 'logo-ctu.png')
+        img = Image.open(img_path)
         img = img.resize((400, 400))
         self.imgtk = ImageTk.PhotoImage(img)
+
         logo_label = Label(self.root, image=self.imgtk, bg='white', width=400, height=400)
         logo_label.place(x=50, y=80)
 
