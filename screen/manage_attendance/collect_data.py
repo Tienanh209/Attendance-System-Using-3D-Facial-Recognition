@@ -116,7 +116,6 @@ def show_frame():
 
 
 def capture_and_save_embedding():
-    """Chụp ảnh, kiểm tra góc mặt và lưu embedding"""
     global student_id
     student_id = entry_id.get().strip()
 

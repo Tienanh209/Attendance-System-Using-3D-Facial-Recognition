@@ -24,7 +24,7 @@ class FaceRecognitionSystem:
 
         #======= background
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'bg_home_teacher.jpg')
+        img_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'bg_home_student.jpg')
         img = Image.open(img_path)
         img = img.resize((930, 605))
         self.imgtk = ImageTk.PhotoImage(img)
@@ -56,20 +56,20 @@ class FaceRecognitionSystem:
         # ==== student
 
         BASE_DIR2 = os.path.dirname(os.path.abspath(__file__))  # Lấy đường dẫn tuyệt đối của file hiện tại
-        img_student_path = os.path.join(BASE_DIR2, '..', 'assets', 'ImageDesign', 'list.png')
+        img_student_path = os.path.join(BASE_DIR2, '..', 'assets', 'ImageDesign', 'profile.png')
 
         img_student = Image.open(img_student_path)
-        img_student = img_student.resize((150, 150), Image.Resampling.LANCZOS)
+        img_student = img_student.resize((150, 140), Image.Resampling.LANCZOS)
 
         self.img_studenttk = ImageTk.PhotoImage(img_student)
-        btn_student = Button(self.root, text="Student List", font=("yu gothic ui", 14, "bold"), command=lambda: self.student_view(self.root),
+        btn_student = Button(self.root, text="Student", font=("yu gothic ui", 14, "bold"), command=lambda: self.student_view(self.root),
                              image=self.img_studenttk, activebackground="white", bg="white", borderwidth=0,
                              compound="top")
         btn_student.place(x=73, y=255, width=194, height=194)
 
         # === recognize
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Lấy thư mục chứa home_screen.py
-        img_recognize_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'attendance.png')
+        img_recognize_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'recognize.png')
         img_recognize_path = os.path.abspath(img_recognize_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
         if not os.path.exists(img_recognize_path):
@@ -79,14 +79,14 @@ class FaceRecognitionSystem:
         img_recognize = img_recognize.resize((140, 140), Image.Resampling.LANCZOS)
 
         self.img_recognizetk = ImageTk.PhotoImage(img_recognize)
-        btn_recognize = Button(self.root, text="Attendance", font=("yu gothic ui", 14, "bold"), command=self.attendance,
+        btn_recognize = Button(self.root, text="Recognize", font=("yu gothic ui", 14, "bold"), command=self.attendance,
                                image=self.img_recognizetk, activebackground="white", bg="white", borderwidth=0,
                                compound="top")
         btn_recognize.place(x=361, y=255, width=194, height=194)
 
         # ==== report
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Lấy đường dẫn thư mục chứa home_screen.py
-        img_report_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'report.png')
+        img_report_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'statistic.png')
         img_report_path = os.path.abspath(img_report_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
         if not os.path.exists(img_report_path):
@@ -96,7 +96,7 @@ class FaceRecognitionSystem:
         img_report = img_report.resize((140, 140), Image.Resampling.LANCZOS)
 
         self.img_reporttk = ImageTk.PhotoImage(img_report)
-        btn_report = Button(self.root, text="Report", font=("yu gothic ui", 14, "bold"), command="",
+        btn_report = Button(self.root, text="Statistics", font=("yu gothic ui", 14, "bold"), command="",
                             image=self.img_reporttk, activebackground="white", bg="white", borderwidth=0,
                             compound="top")
         btn_report.place(x=649, y=255, width=194, height=194)
