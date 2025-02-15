@@ -21,55 +21,37 @@ class LoginWindow:
         self.var_username = StringVar()
         self.var_password = StringVar()
 
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        imgbg_path = os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'bg_signin.jpg')
+        imgbg = Image.open(imgbg_path)
+        imgbg = imgbg.resize((930, 605))
+        self.imgbgtk = ImageTk.PhotoImage(imgbg)
+        lbl_bg = Label(self.root, image=self.imgbgtk, bg='white', width=930, height=605)
+        lbl_bg.place(x=-5, y=-5)
 
-        lbl_today = Label(self.root, bg="white", text=today, font=("Book Antiqua", 20, "bold"), compound=BOTTOM,
-                          fg="#57a1f8", bd=0)
-        lbl_today.place(x=780, y=10)
 
-        lbl_time = Label(self.root, bg="white", text="", font=("Book Antiqua", 20, "bold"), compound=BOTTOM,
-                         fg="#57a1f8", bd=0)
-        lbl_time.place(x=800, y=40)
-        self.update_time(lbl_time)
-
-        # BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        # lbl_today = Label(self.root, bg="white", text=today, font=("Book Antiqua", 20, "bold"), compound=BOTTOM,
+        #                   fg="#57a1f8", bd=0)
+        # lbl_today.place(x=780, y=10)
         #
-        # # Tạo đường dẫn tuyệt đối đến tệp hình ảnh logo-ctu.png
-        # img_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'logo-ctu.png')
-        # img_path = os.path.abspath(img_path)  # Chuẩn hóa đường dẫn thành tuyệt đối
-        # img = Image.open(img_path)
-        # img = img.resize((400, 400))
-        # self.imgtk = ImageTk.PhotoImage(img)
+        # lbl_time = Label(self.root, bg="white", text="", font=("Book Antiqua", 20, "bold"), compound=BOTTOM,
+        #                  fg="#57a1f8", bd=0)
+        # lbl_time.place(x=800, y=40)
+        # self.update_time(lbl_time)
 
-        BASE_DIR2 = os.path.dirname(os.path.abspath(__file__))
-        img_path = os.path.join(BASE_DIR2,'..', '..', 'assets', 'ImageDesign', 'logo-ctu.png')
-        img = Image.open(img_path)
-        img = img.resize((400, 400))
-        self.imgtk = ImageTk.PhotoImage(img)
 
-        logo_label = Label(self.root, image=self.imgtk, bg='white', width=400, height=400)
-        logo_label.place(x=50, y=80)
-
-        frame = Frame(self.root, width=350, height=350, bg='white')
-        frame.place(x=480, y=100)
-
-        lbl_heading = Label(frame, text='SIGN IN', fg='#57a1f8', bg='white',
-                            font=('Microsoft YaHei UI Light', 23, 'bold'))
-        lbl_heading.place(x=130, y=5)
-
-        self.ent_user = Entry(frame, textvariable=self.var_username, width=25, fg='black', border=0, bg='white',
-                              font=('Microsoft YaHei UI Light', 11))
-        self.ent_user.place(x=40, y=80)
+        self.ent_user = Entry(self.root, textvariable=self.var_username, width=15, fg='black', border=0, bg='white',
+                              font=('Microsoft YaHei UI Light', 20))
+        self.ent_user.place(x=444, y=279)
         self.ent_user.insert(0, 'Username')
-        Frame(frame, width=295, height=2, bg='black').place(x=35, y=107)
 
-        self.ent_code = Entry(frame, textvariable=self.var_password, width=25, fg='black', border=0, bg='white',
-                              font=('Microsoft YaHei UI Light', 11), show="*")
-        self.ent_code.place(x=40, y=150)
+        self.ent_code = Entry(self.root, textvariable=self.var_password, width=15, fg='black', border=0, bg='white',
+                              font=('Microsoft YaHei UI Light', 20), show="*")
+        self.ent_code.place(x=444, y=353)
         self.ent_code.insert(0, 'Password')
-        Frame(frame, width=295, height=2, bg='black').place(x=35, y=177)
 
-        btn_login = Button(frame, width=30, pady=7, text='Log in', bg='#57a1f8', border=0, command=self.login)
-        btn_login.place(x=40, y=254)
+        btn_login = Button(self.root, width=15, pady=7, text='Log in', bg='#57a1f8', border=0, command=self.login)
+        btn_login.place(x=679, y=498)
 
         self.ent_user.bind("<FocusIn>", self.clear_username)
         self.ent_code.bind("<FocusIn>", self.clear_password)
