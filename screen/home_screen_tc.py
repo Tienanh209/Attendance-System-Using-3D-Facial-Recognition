@@ -9,7 +9,7 @@ import os
 import json
 import mysql.connector
 
-class FaceRecognitionSystem:
+class HomeScreenTeacher:
     def __init__(self, root):
         self.root = root
 
@@ -122,12 +122,17 @@ class FaceRecognitionSystem:
 
 
     def load_teacher_id(self):
-        # Đọc thông tin từ tệp cấu hình
-        if os.path.exists('login/config.json'):
-            with open('login/config.json', 'r') as f:
-                config = json.load(f)
-                return config.get('teacher_id', 'Unknown')
-        return 'Unknown'
+        config_file = "login/config.json"
+
+        if os.path.exists(config_file):
+            with open(config_file, "r") as f:
+                try:
+                    config_data = json.load(f)
+                    return config_data.get("teacher_id", "Unknown")  # Trả về teacher_id hoặc 'Unknown'
+                except json.JSONDecodeError:
+                    return "Unknown"
+        else:
+            return "Unknown"
 
     def get_teacher_name(self, teacher_id):
         # Kết nối đến cơ sở dữ liệu để lấy tên giáo viên
@@ -151,7 +156,7 @@ class FaceRecognitionSystem:
 
 def main():
     root = Tk()  # Tạo cửa sổ Tkinter
-    app = FaceRecognitionSystem(root)  # Khởi tạo đối tượng FaceRecognitionSystem
+    app = HomeScreenTeacher(root)  # Khởi tạo đối tượng FaceRecognitionSystem
     root.mainloop()  # Bắt đầu vòng lặp Tkinter
 
 if __name__ == "__main__":

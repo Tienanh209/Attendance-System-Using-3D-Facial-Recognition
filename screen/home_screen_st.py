@@ -9,13 +9,13 @@ import os
 import json
 import mysql.connector
 
-class FaceRecognitionSystem:
+class HomeScreenStudent:
     def __init__(self, root):
         self.root = root
 
         # Đọc thông tin từ config.json
-        self.teacher_id = self.load_teacher_id()
-        self.teacher_name = self.get_teacher_name(self.teacher_id)
+        self.student_id = self.load_student_id()
+        self.student_name = self.get_student_name(self.student_id)
 
         self.root.geometry('925x600')
         self.root.title('Facial Recognition Attendance System')
@@ -32,7 +32,7 @@ class FaceRecognitionSystem:
         lbl_bg.place(x=-5, y=-5)
 
         #========== heading
-        lbl_name = Label(self.root, bg="white", text=self.teacher_name, font=("yu gothic ui", 20, "bold"),
+        lbl_name = Label(self.root, bg="white", text=f'{self.student_name}', font=("yu gothic ui", 20, "bold"),
                          fg="#57a1f8", bd=0)
         lbl_name.place(x=110, y=137)
 
@@ -120,20 +120,24 @@ class FaceRecognitionSystem:
         self.new_window = Toplevel(self.root)
         self.app = traindata(self.new_window)
 
+    def load_student_id(self):
+        config_file = "login/config.json"
 
-    def load_teacher_id(self):
-        # Đọc thông tin từ tệp cấu hình
-        if os.path.exists('login/config.json'):
-            with open('login/config.json', 'r') as f:
-                config = json.load(f)
-                return config.get('teacher_id', 'Unknown')
-        return 'Unknown'
+        if os.path.exists(config_file):
+            with open(config_file, "r") as f:
+                try:
+                    config_data = json.load(f)
+                    return config_data.get("student_id", "Unknown")  # Trả về student_id hoặc 'Unknown'
+                except json.JSONDecodeError:
+                    return "Unknown"
+        else:
+            return "Unknown"
 
-    def get_teacher_name(self, teacher_id):
+    def get_student_name(self, student_id):
         # Kết nối đến cơ sở dữ liệu để lấy tên giáo viên
         conn = mysql.connector.connect(host='localhost', user='root', password='', database='face_recognition_sys', port='3306')
         my_cursor = conn.cursor()
-        my_cursor.execute("SELECT name_teacher FROM teacher WHERE id_teacher=%s", (teacher_id,))
+        my_cursor.execute("SELECT name_student FROM student WHERE id_student=%s", (student_id,))
         row = my_cursor.fetchone()
         conn.close()
         if row:
@@ -141,17 +145,15 @@ class FaceRecognitionSystem:
         return 'Unknown'
 
     def logout(self):
-        # Xóa nội dung của tệp config.json mà không xóa tệp
         if os.path.exists('login/config.json'):
             with open('login/config.json', 'w') as f:
-                f.write('{}')  # Ghi nội dung rỗng vào tệp
-        self.root.destroy()  # Đóng cửa sổ hiện tại
-        # import all  # Giả sử all.py chứa trang đăng nhập
-        # all.main()  # Khởi tạo lại cửa sổ đăng nhập
+                f.write('{}')
+        self.root.destroy()
+
 
 def main():
     root = Tk()  # Tạo cửa sổ Tkinter
-    app = FaceRecognitionSystem(root)  # Khởi tạo đối tượng FaceRecognitionSystem
+    app = HomeScreenStudent(root)  # Khởi tạo đối tượng FaceRecognitionSystem
     root.mainloop()  # Bắt đầu vòng lặp Tkinter
 
 if __name__ == "__main__":
