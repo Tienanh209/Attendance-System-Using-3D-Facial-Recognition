@@ -18,7 +18,6 @@ class LoginWindow:
         self.root.geometry('925x600+300+200')
         self.root.configure(bg='#fff')
         self.root.resizable(False, False)
-        today = strftime('%d-%m-%Y')
 
         self.var_username = StringVar()
         self.var_password = StringVar()
@@ -30,17 +29,6 @@ class LoginWindow:
         self.imgbgtk = ImageTk.PhotoImage(imgbg)
         lbl_bg = Label(self.root, image=self.imgbgtk, bg='white', width=930, height=605)
         lbl_bg.place(x=-5, y=-5)
-
-
-        # lbl_today = Label(self.root, bg="white", text=today, font=("Book Antiqua", 20, "bold"), compound=BOTTOM,
-        #                   fg="#57a1f8", bd=0)
-        # lbl_today.place(x=780, y=10)
-        #
-        # lbl_time = Label(self.root, bg="white", text="", font=("Book Antiqua", 20, "bold"), compound=BOTTOM,
-        #                  fg="#57a1f8", bd=0)
-        # lbl_time.place(x=800, y=40)
-        # self.update_time(lbl_time)
-
 
         self.ent_user = Entry(self.root, textvariable=self.var_username, width=15, fg='black', border=0, bg='white',
                               font=('Microsoft YaHei UI Light', 20))
@@ -57,11 +45,6 @@ class LoginWindow:
 
         self.ent_user.bind("<FocusIn>", self.clear_username)
         self.ent_code.bind("<FocusIn>", self.clear_password)
-
-    def update_time(self, lbl_time):
-        current_time = datetime.now().strftime('%H:%M:%S')
-        lbl_time.config(text=current_time)
-        self.root.after(1000, lambda: self.update_time(lbl_time))
 
     def save_teacher_id(self, teacher_id):
         config_data = {"teacher_id": teacher_id}  # Ghi đè dữ liệu cũ
@@ -132,7 +115,7 @@ class LoginWindow:
 
     def clear_password(self, event):
         if self.ent_code.get() == 'Password':
-            self.ent_code.delete(0, END)# Ẩn ký tự khi nhập mật khẩu
+            self.ent_code.delete(0, END)
 
 
 def main_login():
