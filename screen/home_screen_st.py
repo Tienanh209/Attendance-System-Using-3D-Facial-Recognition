@@ -2,9 +2,8 @@ from time import strftime
 from datetime import datetime
 from tkinter import *
 from PIL import ImageTk, Image
-from screen.manage_attendance.manage_attendance_screen import attendance
-from screen.train_model_screen import  traindata
-from screen.student_view.student_view_screen import Student_View
+from student_view.student_view_screen import Student_View
+from student_view.authentication_screen import FaceAuthenticationApp
 import os
 import json
 import mysql.connector
@@ -67,22 +66,22 @@ class HomeScreenStudent:
                              compound="top")
         btn_student.place(x=73, y=255, width=194, height=194)
 
-        # === recognize
+        # === authentication
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img_recognize_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'recognize.png')
-        img_recognize_path = os.path.abspath(img_recognize_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
+        img_authentication_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'recognize.png')
+        img_authentication_path = os.path.abspath(img_authentication_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
-        if not os.path.exists(img_recognize_path):
-            print("File không tồn tại:", img_recognize_path)
+        if not os.path.exists(img_authentication_path):
+            print("File không tồn tại:", img_authentication_path)
 
-        img_recognize = Image.open(img_recognize_path)
-        img_recognize = img_recognize.resize((140, 140), Image.Resampling.LANCZOS)
+        img_authentication = Image.open(img_authentication_path)
+        img_authentication = img_authentication.resize((140, 140), Image.Resampling.LANCZOS)
 
-        self.img_recognizetk = ImageTk.PhotoImage(img_recognize)
-        btn_recognize = Button(self.root, text="Recognize", font=("yu gothic ui", 14, "bold"), command=self.attendance,
-                               image=self.img_recognizetk, activebackground="white", bg="white", borderwidth=0,
+        self.img_authenticationtk = ImageTk.PhotoImage(img_authentication)
+        btn_authentication = Button(self.root, text="Authentication", font=("yu gothic ui", 14, "bold"), command=self.authentication_view,
+                               image=self.img_authenticationtk, activebackground="white", bg="white", borderwidth=0,
                                compound="top")
-        btn_recognize.place(x=361, y=255, width=194, height=194)
+        btn_authentication.place(x=361, y=255, width=194, height=194)
 
         # ==== report
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -113,9 +112,9 @@ class HomeScreenStudent:
     def student_view(self, root):
         self.new_window = Toplevel(root)
         self.app = Student_View(self.new_window)
-    def attendance(self):
+    def authentication_view(self):
         self.new_window = Toplevel(self.root)
-        self.app = attendance(self.new_window)
+        self.app = FaceAuthenticationApp(self.new_window)
     def traindata(self):
         self.new_window = Toplevel(self.root)
         self.app = traindata(self.new_window)
