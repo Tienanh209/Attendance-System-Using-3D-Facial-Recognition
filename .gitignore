@@ -1,19 +1,14 @@
 Data_goc/
 trash/
 .venv/
-.idea
-# Byte-compiled files
 __pycache__/
 *.pyc
 *.pyo
-
+*.json
 # Virtual environment
 env/
-
-# PyCharm
 .idea/
 
-# Distribution / Packaging
 *.egg
 *.egg-info
 dist/
