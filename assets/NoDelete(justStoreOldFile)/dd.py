@@ -35,7 +35,7 @@ class attendance:
         #
         # img = img.resize((1530, 790))
 
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Lấy thư mục chứa home_screen.py
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         img = os.path.join(BASE_DIR,'..', '..', 'assets', 'ImageDesign', 'img.png')
         img = os.path.abspath(img)  # Chuẩn hóa thành đường dẫn tuyệt đối
 

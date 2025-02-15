@@ -1,7 +1,7 @@
 import os
 import json
-from screen.home_screen import main
-from screen.login.login_screen import main_login
+from screen.home_screen_tc import main
+from screen.login.login_screen_tc import main_login
 
 config_file = 'login/config.json'
 

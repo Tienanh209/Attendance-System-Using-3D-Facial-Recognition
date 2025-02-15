@@ -6,7 +6,7 @@ from tkinter import messagebox
 from PIL import ImageTk, Image
 import mysql.connector
 import json
-from screen.home_screen import FaceRecognitionSystem
+from screen.home_screen_st import FaceRecognitionSystem
 
 
 class LoginWindow:
@@ -100,14 +100,13 @@ class LoginWindow:
 
     def clear_password(self, event):
         if self.ent_code.get() == 'Password':
-            self.ent_code.delete(0, END)
-            self.ent_code.config(show="*")  # Ẩn ký tự khi nhập mật khẩu
+            self.ent_code.delete(0, END)# Ẩn ký tự khi nhập mật khẩu
 
 
 def main_login():
-    root = Tk()  # Tạo cửa sổ Tkinter
-    app = LoginWindow(root)  # Khởi tạo đối tượng
-    root.mainloop()  # Bắt đầu vòng lặp Tkinter
+    root = Tk()
+    app = LoginWindow(root)
+    root.mainloop()
 
 if __name__ == "__main__":
-    main_login()  # Gọi hàm main để chạy ứng dụng
+    main_login()

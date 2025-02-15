@@ -68,7 +68,7 @@ class FaceRecognitionSystem:
         btn_student.place(x=73, y=255, width=194, height=194)
 
         # === recognize
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Lấy thư mục chứa home_screen.py
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         img_recognize_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'attendance.png')
         img_recognize_path = os.path.abspath(img_recognize_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
@@ -85,7 +85,7 @@ class FaceRecognitionSystem:
         btn_recognize.place(x=361, y=255, width=194, height=194)
 
         # ==== report
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Lấy đường dẫn thư mục chứa home_screen.py
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         img_report_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'report.png')
         img_report_path = os.path.abspath(img_report_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
