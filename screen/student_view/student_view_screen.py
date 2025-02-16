@@ -10,7 +10,7 @@ import json
 import cv2
 import time
 
-class Student_View:
+class student_view:
     def __init__(self, root):
         self.root = root
         self.teacher_id = self.load_teacher_id()  # Load teacher_id from config
@@ -375,6 +375,6 @@ class Student_View:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = Student_View(root)
+    app = student_view(root)
     root.mainloop()
 

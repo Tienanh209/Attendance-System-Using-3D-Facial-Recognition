@@ -1,13 +1,11 @@
 import os
-from time import strftime
-from datetime import datetime
 from tkinter import *
 from tkinter import messagebox
 from PIL import ImageTk, Image
 import mysql.connector
 import json
-from screen.home_screen_st import HomeScreenStudent
-from screen.home_screen_tc import HomeScreenTeacher
+from screen.home_student_screen import HomeScreenStudent
+from screen.home_teacher_screen import HomeScreenTeacher
 
 
 

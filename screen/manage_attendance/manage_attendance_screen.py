@@ -26,7 +26,7 @@ class attendance:
         self.root = root
         self.root.geometry("1530x790+0+0")
         self.root.title("Attendance")
-        self.isClicked = False
+        self.isClickedClose = False
         self.recognition_start_time = {}
         self.var_section_class = StringVar()
         self.start_time = ['7:00', '7:50', '8:50', '9:50', '10:40', '13:30', '14:20', '15:20', '16:10']
@@ -39,15 +39,10 @@ class attendance:
         self.frame_width = 640
         self.frame_height = 480
 
-        # ======= background
-        # img = Image.open('../../assets/ImageDesign/img.png')
-        #
-        #
-        # img = img.resize((1530, 790))
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         img = os.path.join(BASE_DIR,'..', '..', 'assets', 'ImageDesign', 'img.png')
-        img = os.path.abspath(img)  # Chuẩn hóa thành đường dẫn tuyệt đối
+        img = os.path.abspath(img)
 
         if not os.path.exists(img):
             print("File không tồn tại:", img)
@@ -120,31 +115,13 @@ class attendance:
         self.lbl_time_session = Label(self.left_frame, text="", fg='black', border=0, bg='white',font=('Microsoft YaHei UI Light', 14))
         self.lbl_time_session.place(x=350, y=532)
 
-        # ========== heading
-        lbl_name = Label(self.root, bg="white", text=f"Teacher:  {self.teacher_name}",
-                         font=("yu gothic ui", 15, "bold"), bd=0)
-        lbl_name.place(x=1000, y=50)
+        # # ========== heading
+        # lbl_name = Label(self.root, bg="white", text=f"Teacher:  {self.teacher_name}",
+        #                  font=("yu gothic ui", 15, "bold"), bd=0)
+        # lbl_name.place(x=1000, y=50)
 
 
 
-        #========= print details
-        # frame_details = LabelFrame(self.root, text="Details of section", bg="white")
-        # frame_details.place(x=1200, y=60, width=300, height=150)
-        #
-        # lbl_id_subject = Label(frame_details, text=f"ID Subject: ", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_id_subject.place(x=5, y=5)
-        #
-        # lbl_credit = Label(frame_details, text=f"Credit: ", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_credit.place(x=200, y=5)
-        #
-        # lbl_name_subject = Label(frame_details, text=f"Name of Subject", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_name_subject.place(x=5, y=35)
-        #
-        # lbl_group = Label(frame_details, text=f"Group: ", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_group.place(x=5, y=65)
-        #
-        # lbl_nametc = Label(frame_details, text=f"Lecturer: ", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_nametc.place(x=5, y=95)
 
 
         # RIGHT FRAME
@@ -435,29 +412,63 @@ class attendance:
     def export_excel(self):
         import pandas as pd
         from tkinter import messagebox
+        from datetime import datetime
+        import os  # Đảm bảo thư viện os được import
 
-        # Kiểm tra danh sách nhận diện
-        if hasattr(self, 'recognized_students') and self.recognized_students:
-            data = {"Student ID": self.recognized_students}
-            df = pd.DataFrame(data)
-            output_path = "SinhVienDaDiemDanh.xlsx"  # Đường dẫn file xuất
+        attendance_data = []  # Danh sách để lưu trữ thông tin điểm danh
 
-            try:
-                df.to_excel(output_path, index=False)
-                # Hiện thông báo thành công
-                messagebox.showinfo("Export Success", f"Exported successfully to {output_path}")
-            except Exception as e:
-                # Hiện thông báo lỗi nếu xảy ra
-                messagebox.showerror("Export Error", f"Failed to export: {e}")
-        else:
-            # Hiện thông báo không có dữ liệu để xuất
-            messagebox.showwarning("No Data", "No recognized students to export.")
+        for item in self.tree.get_children():
+            id_student = self.tree.item(item, 'values')[0]
+            name_student = self.tree.item(item, 'values')[1]
+            birthday = self.tree.item(item, 'values')[2]
+            attendance_time = self.tree.item(item, 'values')[3]
+            current_date = self.tree.item(item, 'values')[4]
+            section = self.tree.item(item, 'values')[5]
+            status = self.tree.item(item, 'values')[6]
+
+            # Thêm thông tin vào danh sách
+            attendance_data.append({
+                "Student ID": id_student,
+                "Name": name_student,
+                "Birth": birthday,
+                "Time": attendance_time,
+                "Date": current_date,
+                "Section": section,
+                "Status": status
+            })
+
+        # Chuyển đổi sang DataFrame và xuất ra Excel
+        df = pd.DataFrame(attendance_data)
+
+        # Lấy tên lớp từ ComboBox
+        class_name = self.var_section_class.get()  # Tên lớp (ví dụ: DI0001)
+        date_str = datetime.now().strftime("%d-%m-%Y").replace("/", "-")  # Định dạng ngày tháng
+        output_path = f"{class_name}/attendance_{date_str}.xlsx"  # Đường dẫn file xuất
+
+        try:
+            # Tạo thư mục nếu chưa tồn tại
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            df.to_excel(output_path, index=False)
+            # Hiện thông báo thành công
+            messagebox.showinfo("Export Success", f"Exported successfully to {output_path}")
+        except Exception as e:
+            # Hiện thông báo lỗi nếu xảy ra
+            messagebox.showerror("Export Error", f"Failed to export: {e}")
 
     def is_clicked(self):
-        self.isClicked = True
+        try:
+            self.isClickedClose = False
+            print("Close button clicked")
+            # Thêm các lệnh để dừng camera
+            if hasattr(self, 'pipeline'):
+                self.pipeline.stop()
+            cv2.destroyAllWindows()
+
+        except Exception as e:
+            print(f"Error in is_clicked: {e}")
 
     def open_camera(self):
-        self.isClicked = True
+        self.isClickedClose = True
         self.realtime_face_recognition()
 
     def load_teacher_id(self):
@@ -613,6 +624,8 @@ class attendance:
             fps = 0  # Khởi tạo fps với giá trị mặc định
 
             while True:
+                if self.isClickedClose == False:
+                    break
                 # Lấy và xử lý frame
                 frames = pipeline.wait_for_frames()
                 aligned_frames = align.process(frames)
@@ -674,8 +687,8 @@ class attendance:
                     cv2.putText(color_image, f"Depth: {depth_value:.0f}mm",
                                 (box[0], box[3] + 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-                # Bằng dòng này
-                print("dectecid ne " + ', '.join(detected_ids))
+
+                print("DETECT ne " + ', '.join(detected_ids))
                 # Cập nhật danh sách recognized_students
                 if not hasattr(self, 'recognized_students'):
                     self.recognized_students = []
