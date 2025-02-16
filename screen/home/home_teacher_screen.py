@@ -2,9 +2,9 @@ from time import strftime
 from datetime import datetime
 from tkinter import *
 from PIL import ImageTk, Image
-from screen.manage_attendance.manage_attendance_screen import attendance
-from screen.train_model_screen import  traindata
 from screen.student_view.student_view_screen import student_view
+from screen.manage_attendance.manage_attendance_screen import attendance
+from screen.train_model.train_model_from_images_screen import traindata
 import os
 import json
 import mysql.connector
@@ -24,7 +24,7 @@ class HomeScreenTeacher:
 
         #======= background
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'bg_home_teacher.jpg')
+        img_path = os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'bg_home_teacher.jpg')
         img = Image.open(img_path)
         img = img.resize((930, 605))
         self.imgtk = ImageTk.PhotoImage(img)
@@ -56,7 +56,7 @@ class HomeScreenTeacher:
         # ==== student
 
         BASE_DIR2 = os.path.dirname(os.path.abspath(__file__))  # Lấy đường dẫn tuyệt đối của file hiện tại
-        img_student_path = os.path.join(BASE_DIR2, '..', 'assets', 'ImageDesign', 'list.png')
+        img_student_path = os.path.join(BASE_DIR2, '..', '..', 'assets', 'ImageDesign', 'list.png')
 
         img_student = Image.open(img_student_path)
         img_student = img_student.resize((150, 150), Image.Resampling.LANCZOS)
@@ -69,7 +69,7 @@ class HomeScreenTeacher:
 
         # === recognize
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img_recognize_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'attendance.png')
+        img_recognize_path = os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'attendance.png')
         img_recognize_path = os.path.abspath(img_recognize_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
         if not os.path.exists(img_recognize_path):
@@ -86,7 +86,7 @@ class HomeScreenTeacher:
 
         # ==== report
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img_report_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'report.png')
+        img_report_path = os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'report.png')
         img_report_path = os.path.abspath(img_report_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
         if not os.path.exists(img_report_path):
@@ -112,7 +112,7 @@ class HomeScreenTeacher:
 
     def student_view(self, root):
         self.new_window = Toplevel(root)
-        self.app = Student_View(self.new_window)
+        self.app = student_view(self.new_window)
     def attendance(self):
         self.new_window = Toplevel(self.root)
         self.app = attendance(self.new_window)
@@ -122,7 +122,7 @@ class HomeScreenTeacher:
 
 
     def load_teacher_id(self):
-        config_file = "login/config.json"
+        config_file = "../login/config.json"
 
         if os.path.exists(config_file):
             with open(config_file, "r") as f:
@@ -147,8 +147,8 @@ class HomeScreenTeacher:
 
     def logout(self):
         # Xóa nội dung của tệp config.json mà không xóa tệp
-        if os.path.exists('login/config.json'):
-            with open('login/config.json', 'w') as f:
+        if os.path.exists('../login/config.json'):
+            with open('../login/config.json', 'w') as f:
                 f.write('{}')  # Ghi nội dung rỗng vào tệp
         self.root.destroy()  # Đóng cửa sổ hiện tại
         # import all  # Giả sử all.py chứa trang đăng nhập

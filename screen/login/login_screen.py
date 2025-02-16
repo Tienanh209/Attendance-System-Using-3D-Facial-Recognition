@@ -4,8 +4,8 @@ from tkinter import messagebox
 from PIL import ImageTk, Image
 import mysql.connector
 import json
-from screen.home_student_screen import HomeScreenStudent
-from screen.home_teacher_screen import HomeScreenTeacher
+from screen.home.home_student_screen import HomeScreenStudent
+from screen.home.home_teacher_screen import HomeScreenTeacher
 
 
 
@@ -46,12 +46,16 @@ class LoginWindow:
 
     def save_teacher_id(self, teacher_id):
         config_data = {"teacher_id": teacher_id}  # Ghi đè dữ liệu cũ
-        with open("config.json", "w") as f:
+        # Lưu file vào thư mục screen/login
+        config_path = 'config.json'  # Đường dẫn tương đối
+        with open(config_path, "w") as f:
             json.dump(config_data, f, indent=4)
 
     def save_student_id(self, student_id):
         config_data = {"student_id": student_id}  # Ghi đè dữ liệu cũ
-        with open("config.json", "w") as f:
+        # Lưu file vào thư mục screen/login
+        config_path = 'config.json'  # Đường dẫn tương đối
+        with open(config_path, "w") as f:
             json.dump(config_data, f, indent=4)
 
     def login(self):

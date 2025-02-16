@@ -120,7 +120,7 @@ class HomeScreenStudent:
         self.app = traindata(self.new_window)
 
     def load_student_id(self):
-        config_file = "login/config.json"
+        config_file = "../login/config.json"
 
         if os.path.exists(config_file):
             with open(config_file, "r") as f:
@@ -144,8 +144,8 @@ class HomeScreenStudent:
         return 'Unknown'
 
     def logout(self):
-        if os.path.exists('login/config.json'):
-            with open('login/config.json', 'w') as f:
+        if os.path.exists('../login/config.json'):
+            with open('../login/config.json', 'w') as f:
                 f.write('{}')
         self.root.destroy()
 
