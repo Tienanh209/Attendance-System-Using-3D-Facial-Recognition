@@ -10,121 +10,123 @@ import json
 import cv2
 import time
 
+import tkinter as tk
+from tkinter import ttk
+from PIL import ImageTk, Image
+import mysql.connector
+from tkinter import messagebox
+import os
+import random
+import json
+import cv2
+import time
+
+import tkinter as tk
+from tkinter import ttk
+from PIL import ImageTk, Image
+import mysql.connector
+from tkinter import messagebox
+import os
+import random
+import json
+import cv2
+import time
+
+
 class student_view:
     def __init__(self, root):
         self.root = root
-        self.teacher_id = self.load_teacher_id()  # Load teacher_id from config
         self.root.title("Student View")
-        self.root.geometry('925x600+300+200')
-        self.root.configure(bg='#f0f0f0')  # Set background color to light gray
+        self.root.geometry('1000x600+300+150')
+        self.root.configure(bg='#e3f2fd')
         self.root.resizable(False, False)
 
-        # Create frames
-        self.left_frame = tk.Frame(self.root, width=300, bg='#e3f2fd')  # Set a light blue background color
+        # Left Frame
+        self.left_frame = tk.Frame(self.root, width=500, bg='#e3f2fd')
         self.left_frame.pack(side=tk.LEFT, fill=tk.Y)
 
-        self.right_frame = tk.Frame(self.root, width=625, bg='#ffffff')  # Set a white background color
+        # Right Frame
+        self.right_frame = tk.Frame(self.root, width=500, bg='#e3f2fd')
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
-        self.right_frame.pack_forget()  # Hide the right_frame initially
 
-        # Display teacher name
-        self.lbl_teacher_name = tk.Label(self.left_frame, text=f"Lecturer: {self.get_teacher_name()}", font=('Arial', 14, 'bold'), bg='#e3f2fd')
+        # Lecturer Name
+        self.lbl_teacher_name = tk.Label(self.left_frame, text="Lecturer: Pham Nguyen Khang",
+                                         font=('Arial', 14, 'bold'), bg='#e3f2fd')
         self.lbl_teacher_name.pack(pady=10)
 
-        # Create search widgets for section class and student
-        search_frame = tk.Frame(self.left_frame, bg='#f0f0f0', pady=10)
+        # Search Section
+        search_frame = tk.Frame(self.left_frame, bg='#e3f2fd')
         search_frame.pack(padx=10, pady=10, fill=tk.X)
 
-        # Search by section class
-        search_label_section = tk.Label(search_frame, text="Select course:", font=('Arial', 12, 'bold'), bg='#f0f0f0')
-        search_label_section.grid(row=0, column=0, padx=10, sticky='w')
-
+        tk.Label(search_frame, text="Select course:", font=('Arial', 12, 'bold'), bg='#e3f2fd').grid(row=0, column=0,
+                                                                                                     padx=10,
+                                                                                                     sticky='w')
         self.var_section_class = tk.StringVar()
-        self.section_class_combobox = ttk.Combobox(search_frame, textvariable=self.var_section_class, width=20,
+        self.section_class_combobox = ttk.Combobox(search_frame, textvariable=self.var_section_class, width=12,
                                                    font=('Arial', 12))
         self.section_class_combobox.grid(row=0, column=1, padx=10, sticky='w')
-        self.section_class_combobox.bind('<<ComboboxSelected>>', self.search_by_section_class)
 
-
-        # Search by student ID or Name
-        search_label_student = tk.Label(search_frame, text="Find students:", font=('Arial', 12, 'bold'), bg='#f0f0f0')
-        search_label_student.grid(row=1, column=0, padx=10, pady=(10, 0), sticky='w')
-
+        tk.Label(search_frame, text="Find students:", font=('Arial', 12, 'bold'), bg='#e3f2fd').grid(row=1, column=0,
+                                                                                                     padx=10,
+                                                                                                     pady=(10, 0),
+                                                                                                     sticky='w')
         self.var_student_query = tk.StringVar()
-        self.student_query_entry = tk.Entry(search_frame, textvariable=self.var_student_query, width=22,
+        self.student_query_entry = tk.Entry(search_frame, textvariable=self.var_student_query, width=12,
                                             font=('Arial', 12))
         self.student_query_entry.grid(row=1, column=1, padx=10, pady=(10, 0), sticky='w')
+        search_button = tk.Button(search_frame, text="Search", font=('Arial', 12), bg='#bbdefb',
+                                  command=self.search_by_student)
+        search_button.grid(row=1, column=2, padx=10, pady=(10, 0), sticky='w')
 
-        search_button_student = tk.Button(search_frame, text="Search", command=self.search_by_student,
-                                          font=('Arial', 12), bg='#fff9c4')
-        search_button_student.grid(row=1, column=2, padx=10, pady=(10, 0), sticky='w')
-
-        # Create treeview for student list on left frame
+        # Student List Table
         self.tree = ttk.Treeview(self.left_frame, columns=('ID', 'Name', 'Birthday', 'Email'), show='headings')
         self.tree.heading('ID', text='ID')
         self.tree.heading('Name', text='Name')
         self.tree.heading('Birthday', text='Birthday')
         self.tree.heading('Email', text='Email')
-
-        # Set column widths
-        self.tree.column('ID', width=100, anchor=tk.CENTER)
-        self.tree.column('Name', width=150, anchor=tk.W)
+        self.tree.column('ID', width=80, anchor=tk.CENTER)
+        self.tree.column('Name', width=140, anchor=tk.W)
         self.tree.column('Birthday', width=100, anchor=tk.CENTER)
-        self.tree.column('Email', width=200, anchor=tk.W)
-
+        self.tree.column('Email', width=180, anchor=tk.W)
         self.tree.pack(fill=tk.BOTH, expand=True)
-
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
 
-        # Create labels and image display for student details on right frame
-        self.lbl_title = tk.Label(self.right_frame, text='Student information', font=('Arial', 16, 'bold'), bg='#ffffff')
-        self.lbl_title.place(x=20, y=20)
-        # Nhãn cho các trường thông tin sinh viên
-        lbl_id = tk.Label(self.right_frame, text="ID:", font=('Arial', 12), bg='#ffffff')
-        lbl_id.place(x=20, y=60)
+        # Right Frame - Student Information
+        tk.Label(self.right_frame, text='Student Information', font=('Arial', 16, 'bold'), bg='#e3f2fd').place(x=20,
+                                                                                                               y=20)
 
-        lbl_name = tk.Label(self.right_frame, text="Name:", font=('Arial', 12), bg='#ffffff')
-        lbl_name.place(x=20, y=90)
+        # Entry Fields
+        self.entry_id = tk.Entry(self.right_frame, font=('Arial', 14), width=30)
+        self.entry_name = tk.Entry(self.right_frame, font=('Arial', 14), width=30)
+        self.entry_birthday = tk.Entry(self.right_frame, font=('Arial', 14), width=30)
+        self.entry_email = tk.Entry(self.right_frame, font=('Arial', 14), width=30)
 
-        lbl_birthday = tk.Label(self.right_frame, text="Birthday:", font=('Arial', 12), bg='#ffffff')
-        lbl_birthday.place(x=20, y=120)
+        # Labels and Positioning
+        fields = [('ID', self.entry_id), ('Name', self.entry_name), ('Birthday', self.entry_birthday),
+                  ('Email', self.entry_email)]
+        y_offset = 60
+        for field, entry in fields:
+            tk.Label(self.right_frame, text=f"{field}:", font=('Arial', 12), bg='#e3f2fd').place(x=20, y=y_offset)
+            entry.place(x=100, y=y_offset)
+            y_offset += 40
 
-        lbl_email = tk.Label(self.right_frame, text="Email:", font=('Arial', 12), bg='#ffffff')
-        lbl_email.place(x=20, y=150)
-        btn_update_student = tk.Button(self.right_frame, text='Update', font=('Arial', 12),
-                                       bg='#90caf9', fg='#ffffff',  # Thay đổi màu nền và chữ
-                                       command=self.update_student_info)
-        btn_update_student.place(x=260, y=25)
+        # Buttons
+        btn_update = tk.Button(self.right_frame, text='Update', font=('Arial', 10), bg='#ffffff',
+                               command=self.update_student_info, width=15)
+        btn_update.place(x=50, y=250)
 
-        # Thay thế các Label thành Entry
-        self.entry_id = tk.Entry(self.right_frame, font=('Arial', 14), bg='#ffffff')
-        self.entry_id.place(x=85, y=60, width=200)
-        self.entry_name = tk.Entry(self.right_frame, font=('Arial', 14), bg='#ffffff')
-        self.entry_name.place(x=85, y=90, width=200)
-        self.entry_birthday = tk.Entry(self.right_frame, font=('Arial', 14), bg='#ffffff')
-        self.entry_birthday.place(x=85, y=120, width=200)
-        self.entry_email = tk.Entry(self.right_frame, font=('Arial', 14), bg='#ffffff')
-        self.entry_email.place(x=85, y=150, width=500)
+        btn_delete = tk.Button(self.right_frame, text='Delete images', font=('Arial', 10), bg='#ffffff',
+                               command=self.delete_image, width=15)
+        btn_delete.place(x=210, y=250)
 
-        self.img_label = tk.Label(self.right_frame, bg='#ffffff')
-        self.img_label.place(x=20, y=200)
+        btn_capture = tk.Button(self.right_frame, text='Capture images', font=('Arial', 10), bg='#ffffff',
+                                command=self.capture_new_image, width=14)
+        btn_capture.place(x=370, y=250)
 
-        # Nút xóa ảnh
-        btn_delete_image = tk.Button(self.right_frame, text='Delete images', font=('Arial', 12), command=self.delete_image)
-        btn_delete_image.place(x=20, y=420)
-
-        # # Nút chụp ảnh mới
-        # btn_capture_image = tk.Button(self.right_frame, text='Capture new images', font=('Arial', 12),
-        #                               command=self.capture_new_image)
-        # btn_capture_image.place(x=80, y=450)
-
-        # Nút chụp thêm ảnh
-        btn_capture_more_images = tk.Button(self.right_frame, text='Capture more images', font=('Arial', 12),
-                                            command=self.capture_more_images)
-        btn_capture_more_images.place(x=150, y=420)
-
-        # Load student data and section classes from database
+        # Load section classes
+        self.teacher_id = self.load_teacher_id()
         self.load_section_classes()
+
 
     def load_teacher_id(self):
         # Read teacher_id from config file
