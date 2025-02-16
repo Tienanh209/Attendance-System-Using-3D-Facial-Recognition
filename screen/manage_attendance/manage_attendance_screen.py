@@ -409,50 +409,101 @@ class attendance:
                 self.tree.tag_configure("highlight", background="lightgreen")
                 break
 
+    # def export_excel(self):
+    #     import pandas as pd
+    #     from tkinter import messagebox
+    #     from datetime import datetime
+    #     import os  # Đảm bảo thư viện os được import
+    #
+    #     attendance_data = []  # Danh sách để lưu trữ thông tin điểm danh
+    #
+    #     for item in self.tree.get_children():
+    #         id_student = self.tree.item(item, 'values')[0]
+    #         name_student = self.tree.item(item, 'values')[1]
+    #         birthday = self.tree.item(item, 'values')[2]
+    #         attendance_time = self.tree.item(item, 'values')[3]
+    #         current_date = self.tree.item(item, 'values')[4]
+    #         section = self.tree.item(item, 'values')[5]
+    #         status = self.tree.item(item, 'values')[6]
+    #
+    #         # Thêm thông tin vào danh sách
+    #         attendance_data.append({
+    #             "Student ID": id_student,
+    #             "Name": name_student,
+    #             "Birth": birthday,
+    #             "Time": attendance_time,
+    #             "Date": current_date,
+    #             "Section": section,
+    #             "Status": status
+    #         })
+    #
+    #     # Chuyển đổi sang DataFrame và xuất ra Excel
+    #     df = pd.DataFrame(attendance_data)
+    #
+    #     # Lấy tên lớp từ ComboBox
+    #     class_name = self.var_section_class.get()  # Tên lớp (ví dụ: DI0001)
+    #     date_str = datetime.now().strftime("%d-%m-%Y").replace("/", "-")  # Định dạng ngày tháng
+    #     output_path = f"{class_name}/attendance_{date_str}.xlsx"  # Đường dẫn file xuất
+    #
+    #     try:
+    #         # Tạo thư mục nếu chưa tồn tại
+    #         os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    #         df.to_excel(output_path, index=False)
+    #         # Hiện thông báo thành công
+    #         messagebox.showinfo("Export Success", f"Exported successfully to {output_path}")
+    #     except Exception as e:
+    #         # Hiện thông báo lỗi nếu xảy ra
+    #         messagebox.showerror("Export Error", f"Failed to export: {e}")
     def export_excel(self):
         import pandas as pd
         from tkinter import messagebox
         from datetime import datetime
-        import os  # Đảm bảo thư viện os được import
+        import os
 
-        attendance_data = []  # Danh sách để lưu trữ thông tin điểm danh
+        # Lấy ngày hiện tại làm tiêu đề cột mới
+        today = datetime.now().strftime("%d/%m")  # Định dạng ngày ngắn gọn: 16/08
 
+        # Lấy dữ liệu từ TreeView
+        attendance_data = []
         for item in self.tree.get_children():
-            id_student = self.tree.item(item, 'values')[0]
-            name_student = self.tree.item(item, 'values')[1]
-            birthday = self.tree.item(item, 'values')[2]
-            attendance_time = self.tree.item(item, 'values')[3]
-            current_date = self.tree.item(item, 'values')[4]
-            section = self.tree.item(item, 'values')[5]
-            status = self.tree.item(item, 'values')[6]
+            values = self.tree.item(item, "values")
+            student_id = values[0]  # Mã sinh viên
+            student_name = values[1]  # Họ và tên
+            class_name = values[2]  # Tên lớp
+            status = values[3] if len(values) > 3 else ""  # Trạng thái điểm danh (X hoặc rỗng)
 
-            # Thêm thông tin vào danh sách
-            attendance_data.append({
-                "Student ID": id_student,
-                "Name": name_student,
-                "Birth": birthday,
-                "Time": attendance_time,
-                "Date": current_date,
-                "Section": section,
-                "Status": status
-            })
+            attendance_data.append([student_id, student_name, class_name, status])
 
-        # Chuyển đổi sang DataFrame và xuất ra Excel
-        df = pd.DataFrame(attendance_data)
+        # Chuyển dữ liệu thành DataFrame
+        df_new = pd.DataFrame(attendance_data, columns=["Mã", "Họ và tên", "Tên lớp", today])
 
-        # Lấy tên lớp từ ComboBox
-        class_name = self.var_section_class.get()  # Tên lớp (ví dụ: DI0001)
-        date_str = datetime.now().strftime("%d-%m-%Y").replace("/", "-")  # Định dạng ngày tháng
-        output_path = f"{class_name}/attendance_{date_str}.xlsx"  # Đường dẫn file xuất
+        # Đường dẫn file điểm danh theo lớp
+        class_folder = self.var_section_class.get()
+        output_path = f"{class_folder}/attendance.xlsx"
 
         try:
-            # Tạo thư mục nếu chưa tồn tại
-            os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            df.to_excel(output_path, index=False)
-            # Hiện thông báo thành công
-            messagebox.showinfo("Export Success", f"Exported successfully to {output_path}")
+            # Tạo thư mục nếu chưa có
+            os.makedirs(class_folder, exist_ok=True)
+
+            # Nếu file tồn tại, mở và cập nhật dữ liệu
+            if os.path.exists(output_path):
+                df_old = pd.read_excel(output_path)
+
+                # Kiểm tra nếu cột ngày đã tồn tại
+                if today in df_old.columns:
+                    messagebox.showwarning("Warning", f"Attendance for {today} already exists!")
+                    return
+
+                # Ghép dữ liệu theo "Mã" (đảm bảo sinh viên khớp)
+                df_old = df_old.merge(df_new, on=["Mã", "Họ và tên", "Tên lớp"], how="left")
+            else:
+                df_old = df_new  # Nếu chưa có file, tạo mới
+
+            # Ghi file Excel mới
+            df_old.to_excel(output_path, index=False)
+            messagebox.showinfo("Export Success", f"Attendance exported to {output_path}")
+
         except Exception as e:
-            # Hiện thông báo lỗi nếu xảy ra
             messagebox.showerror("Export Error", f"Failed to export: {e}")
 
     def is_clicked(self):
