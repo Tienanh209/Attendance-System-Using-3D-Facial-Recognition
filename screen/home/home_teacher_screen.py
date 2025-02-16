@@ -4,6 +4,8 @@ from tkinter import *
 from PIL import ImageTk, Image
 from screen.student_view.student_view_screen import student_view
 from screen.manage_attendance.manage_attendance_screen import attendance
+from screen.manage_attendance.statistic_screen import statisticExcel
+
 from screen.train_model.train_model_from_images_screen import traindata
 import os
 import json
@@ -96,7 +98,7 @@ class HomeScreenTeacher:
         img_report = img_report.resize((140, 140), Image.Resampling.LANCZOS)
 
         self.img_reporttk = ImageTk.PhotoImage(img_report)
-        btn_report = Button(self.root, text="Report", font=("yu gothic ui", 14, "bold"), command="",
+        btn_report = Button(self.root, text="Statistic", font=("yu gothic ui", 14, "bold"), command=self.open_statistic_window,
                             image=self.img_reporttk, activebackground="white", bg="white", borderwidth=0,
                             compound="top")
         btn_report.place(x=649, y=255, width=194, height=194)
@@ -153,6 +155,10 @@ class HomeScreenTeacher:
         self.root.destroy()  # Đóng cửa sổ hiện tại
         # import all  # Giả sử all.py chứa trang đăng nhập
         # all.main()  # Khởi tạo lại cửa sổ đăng nhập
+
+    def open_statistic_window(self):
+        new_window = Toplevel(self.root)  # Tạo cửa sổ mới
+        app = statisticExcel(new_window)
 
 def main():
     root = Tk()  # Tạo cửa sổ Tkinter

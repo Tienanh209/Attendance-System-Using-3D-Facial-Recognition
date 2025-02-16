@@ -64,8 +64,12 @@ from tkinter import ttk, filedialog, messagebox
 import pandas as pd
 from pandastable import Table
 
+os.chdir(os.path.dirname(__file__))
 
-class StudentStatisticApp:
+
+
+
+class statisticExcel:
     def __init__(self, root):
         self.root = root
         self.root.title("Student Attendance Statistics")
@@ -74,6 +78,7 @@ class StudentStatisticApp:
 
         # Lớp học
         self.class_folders = self.get_class_folders()
+        print("Current Working Directory:", os.getcwd())
 
         # Tạo Combobox để chọn lớp
         tk.Label(self.root, text="Select Class:", font=("Arial", 14, "bold"), bg="#E3F2FD").pack(pady=10)
@@ -128,7 +133,11 @@ class StudentStatisticApp:
         self.table.show()
 
 
+
 if __name__ == "__main__":
     root = tk.Tk()
-    app = StudentStatisticApp(root)
+    app = statisticExcel(root)
     root.mainloop()
+
+
+
