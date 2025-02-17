@@ -186,10 +186,36 @@ class student_view:
         for row in rows:
             self.tree.insert('', tk.END, values=row)
 
+    # def on_select(self, event):
+    #     selected_item = self.tree.selection()
+    #     if selected_item:
+    #         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+    #         student_id = self.tree.item(selected_item[0], 'values')[0]
+    #
+    #         conn = mysql.connector.connect(host='localhost', user='root', password='', database='face_recognition_sys',
+    #                                        port='3306')
+    #         my_cursor = conn.cursor()
+    #         my_cursor.execute("SELECT id_student, name_student, birthday, email FROM student WHERE id_student = %s",
+    #                           (student_id,))
+    #         row = my_cursor.fetchone()
+    #         conn.close()
+    #
+    #         if row:
+    #             # Hiển thị dữ liệu sinh viên vào Entry
+    #             self.entry_id.delete(0, tk.END)
+    #             self.entry_id.insert(0, row[0])
+    #             # self.entry_id.config(state='readonly')  # Sau khi cập nhật xong chuyển lại thành 'disabled'
+    #             self.entry_name.delete(0, tk.END)
+    #             self.entry_name.insert(0, row[1])
+    #
+    #             self.entry_birthday.delete(0, tk.END)
+    #             self.entry_birthday.insert(0, row[2])
+    #
+    #             self.entry_email.delete(0, tk.END)
+    #             self.entry_email.insert(0, row[3])
     def on_select(self, event):
         selected_item = self.tree.selection()
         if selected_item:
-            self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
             student_id = self.tree.item(selected_item[0], 'values')[0]
 
             conn = mysql.connector.connect(host='localhost', user='root', password='', database='face_recognition_sys',
@@ -201,19 +227,27 @@ class student_view:
             conn.close()
 
             if row:
-                # Hiển thị dữ liệu sinh viên vào Entry
+                # Enable state temporarily to update fields
+                self.entry_id.config(state='normal')
+                self.entry_name.config(state='normal')
+                self.entry_birthday.config(state='normal')
+                self.entry_email.config(state='normal')
+
+                # Insert values
                 self.entry_id.delete(0, tk.END)
                 self.entry_id.insert(0, row[0])
-                # self.entry_id.config(state='readonly')  # Sau khi cập nhật xong chuyển lại thành 'disabled'
                 self.entry_name.delete(0, tk.END)
                 self.entry_name.insert(0, row[1])
-
                 self.entry_birthday.delete(0, tk.END)
                 self.entry_birthday.insert(0, row[2])
-
                 self.entry_email.delete(0, tk.END)
                 self.entry_email.insert(0, row[3])
 
+                # Set back to read-only
+                self.entry_id.config(state='readonly')
+                self.entry_name.config(state='readonly')
+                self.entry_birthday.config(state='readonly')
+                self.entry_email.config(state='readonly')
                 # # Tiếp tục phần xử lý hình ảnh như trước đây
                 # folder_path = f'trash/DataProcessed/{student_id}'
                 # if os.path.isdir(folder_path):
