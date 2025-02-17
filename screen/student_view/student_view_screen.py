@@ -214,22 +214,22 @@ class student_view:
                 self.entry_email.delete(0, tk.END)
                 self.entry_email.insert(0, row[3])
 
-                # Tiếp tục phần xử lý hình ảnh như trước đây
-                folder_path = f'trash/DataProcessed/{student_id}'
-                if os.path.isdir(folder_path):
-                    image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-                    if image_files:
-                        random_image_file = random.choice(image_files)
-                        img_path = os.path.join(folder_path, random_image_file)
-                        img = Image.open(img_path)
-                        img = img.resize((200, 200))  # Resize image as needed
-                        imgtk = ImageTk.PhotoImage(img)
-                        self.img_label.config(image=imgtk)
-                        self.img_label.image = imgtk  # Keep a reference to avoid garbage collection
-                    else:
-                        self.img_label.config(image='')  # Clear image if no images found
-                else:
-                    self.img_label.config(image='')  # Clear image if folder not found
+                # # Tiếp tục phần xử lý hình ảnh như trước đây
+                # folder_path = f'trash/DataProcessed/{student_id}'
+                # if os.path.isdir(folder_path):
+                #     image_files = [f for f in os.listdir(folder_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+                #     if image_files:
+                #         random_image_file = random.choice(image_files)
+                #         img_path = os.path.join(folder_path, random_image_file)
+                #         img = Image.open(img_path)
+                #         img = img.resize((200, 200))  # Resize image as needed
+                #         imgtk = ImageTk.PhotoImage(img)
+                #         self.img_label.config(image=imgtk)
+                #         self.img_label.image = imgtk  # Keep a reference to avoid garbage collection
+                #     else:
+                #         self.img_label.config(image='')  # Clear image if no images found
+                # else:
+                #     self.img_label.config(image='')  # Clear image if folder not found
 
     def delete_image(self):
         # Xóa ảnh từ thư mục DataProcessed
