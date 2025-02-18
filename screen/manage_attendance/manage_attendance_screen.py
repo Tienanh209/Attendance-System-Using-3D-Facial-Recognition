@@ -68,23 +68,23 @@ class attendance:
 
         self.panel.place(x=8, y=20, width=800, height=480)
 
-        self.cbb_session = ttk.Combobox(self.left_frame, values=["Morning", "Afternoon"])
-        self.cbb_session.place(x=20, y=530, width=120)
-        self.cbb_session.bind("<<ComboboxSelected>>", self.choose_session)
+        # self.cbb_session = ttk.Combobox(self.left_frame, values=["Morning", "Afternoon"])
+        # self.cbb_session.place(x=20, y=530, width=120)
+        # self.cbb_session.bind("<<ComboboxSelected>>", self.choose_session)
+        #
+        # self.cbb_from = ttk.Combobox(self.left_frame, values=[])
+        # self.cbb_from.place(x=200, y=530, width=40)
+        # self.cbb_from.bind("<<ComboboxSelected>>", self.choose_from)
+        #
+        # self.cbb_to = ttk.Combobox(self.left_frame, values=[])
+        # self.cbb_to.place(x=295, y=530, width=40)
+        # self.cbb_to.bind("<<ComboboxSelected>>", self.choose_to)
 
-        self.cbb_from = ttk.Combobox(self.left_frame, values=[])
-        self.cbb_from.place(x=200, y=530, width=40)
-        self.cbb_from.bind("<<ComboboxSelected>>", self.choose_from)
-
-        self.cbb_to = ttk.Combobox(self.left_frame, values=[])
-        self.cbb_to.place(x=295, y=530, width=40)
-        self.cbb_to.bind("<<ComboboxSelected>>", self.choose_to)
-
-        Label(self.left_frame, text="From: ", fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14)).place(x=150, y=532)
-        Label(self.left_frame, text="To: ", fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14)).place(x=260, y=532)
-
-        btn_add = Button(self.left_frame, text="Add", bg="#57a1f8", fg="black", command=self.add_session)
-        btn_add.place(x=500, y=530, width=50, height=25)
+        # Label(self.left_frame, text="From: ", fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14)).place(x=150, y=532)
+        # Label(self.left_frame, text="To: ", fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14)).place(x=260, y=532)
+        #
+        # btn_add = Button(self.left_frame, text="Add", bg="#57a1f8", fg="black", command=self.add_session)
+        # btn_add.place(x=500, y=530, width=50, height=25)
 
         btn_open = Button(self.left_frame, text="Open", bg="#57a1f8", fg="black", command=self.open_camera)
         btn_open.place(x=100, y=580, width=180, height=50)
@@ -409,51 +409,6 @@ class attendance:
                 self.tree.tag_configure("highlight", background="lightgreen")
                 break
 
-    # def export_excel(self):
-    #     import pandas as pd
-    #     from tkinter import messagebox
-    #     from datetime import datetime
-    #     import os  # Đảm bảo thư viện os được import
-    #
-    #     attendance_data = []  # Danh sách để lưu trữ thông tin điểm danh
-    #
-    #     for item in self.tree.get_children():
-    #         id_student = self.tree.item(item, 'values')[0]
-    #         name_student = self.tree.item(item, 'values')[1]
-    #         birthday = self.tree.item(item, 'values')[2]
-    #         attendance_time = self.tree.item(item, 'values')[3]
-    #         current_date = self.tree.item(item, 'values')[4]
-    #         section = self.tree.item(item, 'values')[5]
-    #         status = self.tree.item(item, 'values')[6]
-    #
-    #         # Thêm thông tin vào danh sách
-    #         attendance_data.append({
-    #             "Student ID": id_student,
-    #             "Name": name_student,
-    #             "Birth": birthday,
-    #             "Time": attendance_time,
-    #             "Date": current_date,
-    #             "Section": section,
-    #             "Status": status
-    #         })
-    #
-    #     # Chuyển đổi sang DataFrame và xuất ra Excel
-    #     df = pd.DataFrame(attendance_data)
-    #
-    #     # Lấy tên lớp từ ComboBox
-    #     class_name = self.var_section_class.get()  # Tên lớp (ví dụ: DI0001)
-    #     date_str = datetime.now().strftime("%d-%m-%Y").replace("/", "-")  # Định dạng ngày tháng
-    #     output_path = f"{class_name}/attendance_{date_str}.xlsx"  # Đường dẫn file xuất
-    #
-    #     try:
-    #         # Tạo thư mục nếu chưa tồn tại
-    #         os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    #         df.to_excel(output_path, index=False)
-    #         # Hiện thông báo thành công
-    #         messagebox.showinfo("Export Success", f"Exported successfully to {output_path}")
-    #     except Exception as e:
-    #         # Hiện thông báo lỗi nếu xảy ra
-    #         messagebox.showerror("Export Error", f"Failed to export: {e}")
     def export_excel(self):
         import pandas as pd
         from tkinter import messagebox
