@@ -45,16 +45,18 @@ class LoginWindow:
         self.ent_code.bind("<FocusIn>", self.clear_password)
 
     def save_teacher_id(self, teacher_id):
-        config_data = {"teacher_id": teacher_id}  # Ghi đè dữ liệu cũ
-        # Lưu file vào thư mục screen/login
-        config_path = 'config.json'  # Đường dẫn tương đối
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
+        config_path = os.path.join(BASE_DIR, 'config.json')
+        config_data = {"teacher_id": teacher_id}
+
         with open(config_path, "w") as f:
             json.dump(config_data, f, indent=4)
 
     def save_student_id(self, student_id):
-        config_data = {"student_id": student_id}  # Ghi đè dữ liệu cũ
-        # Lưu file vào thư mục screen/login
-        config_path = 'config.json'  # Đường dẫn tương đối
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
+        config_path = os.path.join(BASE_DIR, 'config.json')
+        config_data = {"student_id": student_id}
+
         with open(config_path, "w") as f:
             json.dump(config_data, f, indent=4)
 
