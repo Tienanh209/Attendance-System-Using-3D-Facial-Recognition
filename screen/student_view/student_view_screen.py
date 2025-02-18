@@ -101,14 +101,14 @@ class student_view:
             y_offset += 40
 
         # Buttons
-        btn_update = tk.Button(self.right_frame, text='Update', font=('Arial', 10), bg='#4CAF50', fg='white', command=self.update_student_info, width=15)
-        btn_update.place(x=50, y=250)
-
-        btn_delete = tk.Button(self.right_frame, text='Delete images', font=('Arial', 10), bg='#F44336', fg='white', command=self.delete_image, width=15)
-        btn_delete.place(x=210, y=250)
-
-        btn_capture = tk.Button(self.right_frame, text='Capture images', font=('Arial', 10), bg='#FFC107', fg='black', command=self.capture_new_image, width=14)
-        btn_capture.place(x=370, y=250)
+        # btn_update = tk.Button(self.right_frame, text='Update', font=('Arial', 10), bg='#4CAF50', fg='white', command=self.update_student_info, width=15)
+        # btn_update.place(x=50, y=250)
+        #
+        # btn_delete = tk.Button(self.right_frame, text='Delete images', font=('Arial', 10), bg='#F44336', fg='white', command=self.delete_image, width=15)
+        # btn_delete.place(x=210, y=250)
+        #
+        # btn_capture = tk.Button(self.right_frame, text='Capture images', font=('Arial', 10), bg='#FFC107', fg='black', command=self.capture_new_image, width=14)
+        # btn_capture.place(x=370, y=250)
 
         # Load section classes
         self.teacher_id = self.load_teacher_id()
