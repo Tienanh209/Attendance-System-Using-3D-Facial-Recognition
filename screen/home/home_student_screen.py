@@ -23,7 +23,7 @@ class HomeScreenStudent:
 
         #======= background
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'bg_home_student.jpg')
+        img_path = os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'bg_home_student.jpg')
         img = Image.open(img_path)
         img = img.resize((930, 605))
         self.imgtk = ImageTk.PhotoImage(img)
@@ -55,7 +55,7 @@ class HomeScreenStudent:
         # ==== student
 
         BASE_DIR2 = os.path.dirname(os.path.abspath(__file__))  # Lấy đường dẫn tuyệt đối của file hiện tại
-        img_student_path = os.path.join(BASE_DIR2, '..', 'assets', 'ImageDesign', 'profile.png')
+        img_student_path = os.path.join(BASE_DIR2, '..', '..', 'assets', 'ImageDesign', 'profile.png')
 
         img_student = Image.open(img_student_path)
         img_student = img_student.resize((150, 140), Image.Resampling.LANCZOS)
@@ -68,7 +68,7 @@ class HomeScreenStudent:
 
         # === authentication
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img_authentication_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'recognize.png')
+        img_authentication_path = os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'recognize.png')
         img_authentication_path = os.path.abspath(img_authentication_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
         if not os.path.exists(img_authentication_path):
@@ -85,7 +85,7 @@ class HomeScreenStudent:
 
         # ==== report
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img_report_path = os.path.join(BASE_DIR, '..', 'assets', 'ImageDesign', 'statistic.png')
+        img_report_path = os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'statistic.png')
         img_report_path = os.path.abspath(img_report_path)  # Chuẩn hóa thành đường dẫn tuyệt đối
 
         if not os.path.exists(img_report_path):
