@@ -475,7 +475,7 @@ class attendance:
             attendance_data.append([student_id, student_name, class_name, status])
 
         # Chuyển dữ liệu thành DataFrame
-        df_new = pd.DataFrame(attendance_data, columns=["Mã", "Họ và tên", "Tên lớp", today])
+        df_new = pd.DataFrame(attendance_data, columns=["Mã", "Họ và tên", "Birth", today])
 
         # Đường dẫn file điểm danh theo lớp
         class_folder = self.var_section_class.get()
@@ -495,7 +495,7 @@ class attendance:
                     return
 
                 # Ghép dữ liệu theo "Mã" (đảm bảo sinh viên khớp)
-                df_old = df_old.merge(df_new, on=["Mã", "Họ và tên", "Tên lớp"], how="left")
+                df_old = df_old.merge(df_new, on=["Mã", "Họ và tên", "Birth"], how="left")
             else:
                 df_old = df_new  # Nếu chưa có file, tạo mới
 
