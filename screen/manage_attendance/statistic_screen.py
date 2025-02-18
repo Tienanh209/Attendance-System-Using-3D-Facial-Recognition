@@ -131,7 +131,7 @@ class statisticExcel:
 
         self.table = Table(self.frame, dataframe=df, showtoolbar=True, showstatusbar=True)
         self.table.show()
-
+        self.table.redraw()
 
 
 if __name__ == "__main__":
