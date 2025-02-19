@@ -415,48 +415,63 @@ class attendance:
         from datetime import datetime
         import os
 
-        # Lấy ngày hiện tại làm tiêu đề cột mới
-        today = datetime.now().strftime("%d/%m")  # Định dạng ngày ngắn gọn: 16/08
+        today = datetime.now().strftime("%d/%m")  # Lấy ngày hiện tại
 
         # Lấy dữ liệu từ TreeView
         attendance_data = []
-        for item in self.tree.get_children():
+        for index, item in enumerate(self.tree.get_children(), start=1):
             values = self.tree.item(item, "values")
-            student_id = values[0]  # Mã sinh viên
-            student_name = values[1]  # Họ và tên
-            class_name = values[2]  # Tên lớp
-            status = values[3] if len(values) > 3 else ""  # Trạng thái điểm danh (X hoặc rỗng)
+            student_id = values[0]
+            student_name = values[1]
+            class_name = values[2]
+            status = values[3] if len(values) > 3 else ""
 
-            attendance_data.append([student_id, student_name, class_name, status])
+            attendance_data.append([index, student_id, student_name, class_name, status])
 
-        # Chuyển dữ liệu thành DataFrame
-        df_new = pd.DataFrame(attendance_data, columns=["Mã", "Họ và tên", "Birth", today])
+        # Chuyển thành DataFrame
+        df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Birth", today])
 
-        # Đường dẫn file điểm danh theo lớp
+        # Đường dẫn file Excel
         class_folder = self.var_section_class.get()
         output_path = f"{class_folder}/attendance.xlsx"
 
         try:
-            # Tạo thư mục nếu chưa có
             os.makedirs(class_folder, exist_ok=True)
 
-            # Nếu file tồn tại, mở và cập nhật dữ liệu
             if os.path.exists(output_path):
                 df_old = pd.read_excel(output_path)
 
-                # Kiểm tra nếu cột ngày đã tồn tại
+                # Xóa cột "Số lần vắng" cũ nếu có
+                if "Số lần vắng" in df_old.columns:
+                    df_old = df_old.drop(columns=["Số lần vắng"])
+
                 if today in df_old.columns:
-                    messagebox.showwarning("Warning", f"Attendance for {today} already exists!")
-                    return
+                    # Nếu ngày đã tồn tại -> Cập nhật lại dữ liệu
+                    df_old.drop(columns=[today], inplace=True)
 
-                # Ghép dữ liệu theo "Mã" (đảm bảo sinh viên khớp)
-                df_old = df_old.merge(df_new, on=["Mã", "Họ và tên", "Birth"], how="left")
+                # Ghép dữ liệu mới vào bên phải
+                df_old = df_old.merge(df_new, on=["STT", "Mã", "Họ và tên", "Birth"], how="left")
             else:
-                df_old = df_new  # Nếu chưa có file, tạo mới
+                df_old = df_new
 
-            # Ghi file Excel mới
+            # Tính lại số lần vắng
+            df_old["Số lần vắng"] = df_old.iloc[:, 4:].apply(lambda row: (row == "").sum(), axis=1)
+
+            # Thống kê số sinh viên đi học
+            total_students = len(df_old)
+            attended_count = df_old[today].apply(lambda x: 1 if x != "" else 0).sum()
+            attendance_summary = f"{attended_count}/{total_students}"
+
+            # Cập nhật dòng tổng kết ở cuối (nếu đã có thì sửa lại)
+            if (df_old.iloc[-1, 1] == ""):  # Kiểm tra nếu hàng cuối là thống kê
+                df_old.iloc[-1, 4] = attendance_summary
+            else:
+                summary_row = [""] * 4 + [attendance_summary] + [""] * (df_old.shape[1] - 5)
+                df_old.loc[len(df_old)] = summary_row
+
+            # Ghi file Excel
             df_old.to_excel(output_path, index=False)
-            messagebox.showinfo("Export Success", f"Attendance exported to {output_path}")
+            messagebox.showinfo("Export Success", f"Attendance updated and exported to {output_path}")
 
         except Exception as e:
             messagebox.showerror("Export Error", f"Failed to export: {e}")
@@ -497,21 +512,6 @@ class attendance:
             return row[0]
         return 'Unknown'
 
-    backends = [
-        'opencv',
-        'ssd',
-        'dlib',
-        'mtcnn',
-        'fastmtcnn',
-        'retinaface',
-        'mediapipe',
-        'yolov8',
-        'yunet',
-        'centerface',
-    ]
-    alignment_modes = [True, False]
-    models = ["VGG-Face", "Facenet", "Facenet512", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"]
-    metrics = ["cosine", "euclidean", "euclidean_l2"]
     img = "DataProcessed/.jpg"
 
     def realtime_face_recognition(self):
@@ -523,8 +523,8 @@ class attendance:
             frame_width=self.frame_width,
             frame_height=self.frame_height
         )
-
-    def run_face_recognition_3d(self, embeddings_dir='../../assets/DataEmbeddings/', depth_min=300, depth_max=1500,
+# 300,1500
+    def run_face_recognition_3d(self, embeddings_dir='../../assets/DataEmbeddings/', depth_min=0, depth_max=15000000,
                                 similarity_threshold=0.5, frame_width=640, frame_height=480):
 
         # Kiểm tra xem thư mục có tồn tại không

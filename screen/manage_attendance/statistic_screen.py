@@ -120,6 +120,8 @@ class statisticExcel:
 
         try:
             df = pd.read_excel(excel_file)
+            df['STT'] = df['STT'].fillna(0).astype(int)
+
             self.display_table(df)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load Excel file: {e}")
