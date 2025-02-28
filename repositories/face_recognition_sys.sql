@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th12 06, 2024 lúc 12:32 PM
+-- Thời gian đã tạo: Th2 28, 2025 lúc 03:16 PM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -107,63 +107,47 @@ CREATE TABLE `register` (
 --
 
 INSERT INTO `register` (`id_student`, `id_class_subject`) VALUES
-('B2103492', 'DI0002'),
-('B2105661', 'DI0001'),
-('B2105667', 'DI0002'),
-('B2105684', 'DI0001'),
-('B2105695', 'DI0002'),
-('B2105709', 'DI0001'),
-('B2110011', 'DI0001'),
-('B2110080', 'DI0002'),
-('B2110103', 'DI0002'),
-('B2110128', 'DI0002'),
-('B2111787', 'DI0002'),
-('B2111879', 'DI0002'),
-('B2111930', 'DI0001'),
-('B2111939', 'DI0002'),
-('B2111946', 'DI0001'),
-('B2111949', 'DI0001'),
-('B2111952', 'DI0001'),
-('B2111955', 'DI0001'),
-('B2111959', 'DI0001'),
-('B2111963', 'DI0002'),
-('B2111995', 'DI0002'),
-('B2112004', 'DI0001'),
-('B2112010', 'DI0001');
-
-INSERT INTO `register` (`id_student`, `id_class_subject`) VALUES
-('B2111959', 'DI0003'),
-('B2110011', 'DI0003'),
+('B1910716', 'DI0003'),
+('B2014956', 'DI0003'),
 ('B2105661', 'DI0003'),
-('B2111955', 'DI0003'),
-('B2111930', 'DI0003'),
-('B2112004', 'DI0003'),
-('B2105667', 'DI0003'),
-('B2111949', 'DI0003'),
-('B2111946', 'DI0003'),
-('B2105695', 'DI0003'),
+('B2105663', 'DI0003'),
+('B2105670', 'DI0003'),
+('B2105686', 'DI0003'),
+('B2105688', 'DI0003'),
+('B2105689', 'DI0003'),
 ('B2105709', 'DI0003'),
-('B2111879', 'DI0003'),
-('B2111939', 'DI0003'),
-('B2111963', 'DI0003'),
-('B2112010', 'DI0003');
-
-INSERT INTO `register` (`id_student`, `id_class_subject`) VALUES
-('B2111959', 'DI0004'),
-('B2110011', 'DI0004'),
-('B2105661', 'DI0004'),
-('B2111955', 'DI0004'),
-('B2111930', 'DI0004'),
-('B2112004', 'DI0004'),
-('B2105667', 'DI0004'),
-('B2111949', 'DI0004'),
-('B2111946', 'DI0004'),
-('B2105695', 'DI0004'),
-('B2105709', 'DI0004'),
-('B2111879', 'DI0004'),
-('B2111939', 'DI0004'),
-('B2111963', 'DI0004'),
-('B2112010', 'DI0004');
+('B2105727', 'DI0003'),
+('B2110011', 'DI0003'),
+('B2110058', 'DI0003'),
+('B2111807', 'DI0003'),
+('B2111862', 'DI0003'),
+('B2111885', 'DI0003'),
+('B2111919', 'DI0003'),
+('B2111922', 'DI0003'),
+('B2111927', 'DI0003'),
+('B2111935', 'DI0003'),
+('B2111940', 'DI0003'),
+('B2111943', 'DI0003'),
+('B2111945', 'DI0003'),
+('B2111949', 'DI0003'),
+('B2111955', 'DI0003'),
+('B2111957', 'DI0003'),
+('B2111959', 'DI0003'),
+('B2111964', 'DI0003'),
+('B2111971', 'DI0003'),
+('B2111972', 'DI0003'),
+('B2111974', 'DI0003'),
+('B2111975', 'DI0003'),
+('B2111978', 'DI0003'),
+('B2111988', 'DI0003'),
+('B2111989', 'DI0003'),
+('B2111993', 'DI0003'),
+('B2111994', 'DI0003'),
+('B2111996', 'DI0003'),
+('B2112000', 'DI0003'),
+('B2112009', 'DI0003'),
+('B2112010', 'DI0003'),
+('B2112021', 'DI0003');
 
 -- --------------------------------------------------------
 
@@ -197,78 +181,97 @@ CREATE TABLE `student` (
   `id_student` varchar(8) NOT NULL,
   `name_student` varchar(100) DEFAULT NULL,
   `birthday` date DEFAULT NULL,
-  `email` varchar(100) DEFAULT NULL
+  `email` varchar(100) DEFAULT NULL,
+  `pwd` varchar(8) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Đang đổ dữ liệu cho bảng `student`
 --
 
-INSERT INTO `student` (`id_student`, `name_student`, `birthday`, `email`) VALUES
-('B2103492', 'Tran Thanh Duy', '2003-08-04', 'duyb2103492@student.ctu.edu.vn'),
-('B2105661', 'Cao Tien Anh', '2003-02-10', 'anhb2105661@student.ctu.edu.vn'),
-('B2105667', 'Le Trung Huy', '2003-06-22', 'huyb2105667@student.ctu.edu.vn'),
-('B2105684', 'Le Anh Quan', '2003-11-19', 'quanb2105684@student.ctu.edu.vn'),
-('B2105695', 'Le Huy Anh', '2003-05-30', 'anhb2105695@student.ctu.edu.vn'),
-('B2105709', 'Khuc Bao Minh', '2003-10-27', 'minhb2105709@student.ctu.edu.vn'),
-('B2110011', 'Nguyen Nhat Hao', '2003-05-18', 'haob2110011@student.ctu.edu.vn'),
-('B2110080', 'Dao Huu Khang', '2003-09-17', 'khangb2110080@student.ctu.edu.vn'),
-('B2110103', 'Ma Thanh Thong', '2003-10-11', 'thongb2110103@student.ctu.edu.vn'),
-('B2110128', 'Le Tuan Kiet', '2003-07-08', 'kietb2110128@student.ctu.edu.vn'),
-('B2111787', 'Doan Kha Ai', '2003-11-25', 'aib2111787@student.ctu.edu.vn'),
-('B2111879', 'Dang Thanh Dat', '2003-04-25', 'datb2111879@student.ctu.edu.vn'),
-('B2111930', 'Ly Phuong Khai', '2003-06-11', 'khaib2111930@student.ctu.edu.vn'),
-('B2111939', 'Nguyen Yen Ngoc', '2003-03-05', 'ngocb2111939@student.ctu.edu.vn'),
-('B2111946', 'Tran Minh Quang', '2003-04-05', 'quangb2111946@student.ctu.edu.vn'),
-('B2111949', 'Ngo Thuy Thanh Tam', '2003-07-09', 'tamb2111949@student.ctu.edu.vn'),
-('B2111952', 'Le Xuan Thanh', '2003-09-03', 'thanhb2111952@student.ctu.edu.vn'),
-('B2111955', 'Chau Dinh Thong', '2003-01-15', 'thongb2111955@student.ctu.edu.vn'),
-('B2111959', 'Nguyen Thi Hoai Thuong', '2003-08-16', 'thuongb2111959@student.ctu.edu.vn'),
-('B2111963', 'Ho Kim Trong', '2003-01-23', 'trongb2111963@student.ctu.edu.vn'),
-('B2111995', 'Tran Trung Nguyen', '2003-02-14', 'nguyenb2111995@student.ctu.edu.vn'),
-('B2112004', 'Le Thanh Tam', '2003-12-12', 'tamb2112004@student.ctu.edu.vn'),
-('B2112010', 'Nguyen Phu Thinh', '2003-03-22', 'thinhb2112010@student.ctu.edu.vn');
+INSERT INTO `student` (`id_student`, `name_student`, `birthday`, `email`, `pwd`) VALUES
+('B1910716', 'Phạm Thanh Tiến', '2003-01-01', 'tienb1910716@student.ctu.edu.vn', '123456az'),
+('B2014956', 'Quan Cao Phuc Tri', '2003-01-01', 'trib2014956@student.ctu.edu.vn', '123456az'),
+('B2103492', 'Tran Thanh Duy', '2003-08-04', 'duyb2103492@student.ctu.edu.vn', '123456az'),
+('B2105661', 'Cao Tien Anh', '2003-02-10', 'anhb2105661@student.ctu.edu.vn', '123456az'),
+('B2105662', 'Tran Duy Bao Anh', '2003-01-01', 'tranb2105662@student.ctu.edu.vn', '123456az'),
+('B2105663', 'Tôn Thị Ngọc Châu', '2003-01-01', 'chaub2105663@student.ctu.edu.vn', '123456az'),
+('B2105665', 'Lam Nhat Hao', '2003-01-01', 'lamb2105665@student.ctu.edu.vn', '123456az'),
+('B2105667', 'Le Trung Huy', '2003-06-22', 'huyb2105667@student.ctu.edu.vn', '123456az'),
+('B2105668', 'Truong Gia Huy', '2003-01-01', 'truongb2105668@student.ctu.edu.vn', '123456az'),
+('B2105670', 'Duong Minh Khang', '2003-01-01', 'duongb2105670@student.ctu.edu.vn', '123456az'),
+('B2105684', 'Le Anh Quan', '2003-11-19', 'quanb2105684@student.ctu.edu.vn', '123456az'),
+('B2105686', 'Kim Duy Thanh', '2003-01-01', 'kimb2105686@student.ctu.edu.vn', '123456az'),
+('B2105688', 'Nguyen Phuong Thuy', '2003-01-01', 'nguyenb2105688@student.ctu.edu.vn', '123456az'),
+('B2105689', 'Nguyễn Trung Tín', '2003-01-01', 'tinb2105689@student.ctu.edu.vn', '123456az'),
+('B2105695', 'Le Huy Anh', '2003-05-30', 'anhb2105695@student.ctu.edu.vn', '123456az'),
+('B2105709', 'Khuc Bao Minh', '2003-10-27', 'minhb2105709@student.ctu.edu.vn', '123456az'),
+('B2105718', 'Nguyen Van Quy', '2003-01-01', 'nguyenb2105718@student.ctu.edu.vn', '123456az'),
+('B2105721', 'Nguyen Thai Thuan', '2003-01-01', 'nguyenb2105721@student.ctu.edu.vn', '123456az'),
+('B2105723', 'Danh Tan Toi', '2003-01-01', 'danhb2105723@student.ctu.edu.vn', '123456az'),
+('B2105727', 'Nguyen Quang Vinh', '2003-01-01', 'nguyenb2105727@student.ctu.edu.vn', '123456az'),
+('B2108121', 'Nguyen Duy Thanh', '2003-01-01', 'nguyenb2108121@student.ctu.edu.vn', '123456az'),
+('B2109666', 'To Kieu Diem Quynh', '2003-01-01', 'tob2109666@student.ctu.edu.vn', '123456az'),
+('B2110011', 'Nguyen Nhat Hao', '2003-05-18', 'haob2110011@student.ctu.edu.vn', '123456az'),
+('B2110058', 'Ho Chi Thanh', '2003-01-01', 'hoab2110058@student.ctu.edu.vn', '123456az'),
+('B2110080', 'Dao Huu Khang', '2003-09-17', 'khangb2110080@student.ctu.edu.vn', '123456az'),
+('B2110103', 'Ma Thanh Thong', '2003-10-11', 'thongb2110103@student.ctu.edu.vn', '123456az'),
+('B2110128', 'Le Tuan Kiet', '2003-07-08', 'kietb2110128@student.ctu.edu.vn', '123456az'),
+('B2111787', 'Doan Kha Ai', '2003-11-25', 'aib2111787@student.ctu.edu.vn', '123456az'),
+('B2111807', 'Nguyễn Tấn Lộc', '2003-01-01', 'locb2111807@student.ctu.edu.vn', '123456az'),
+('B2111862', 'Pham Tran Anh Tai', '2003-01-01', 'phamb2111862@student.ctu.edu.vn', '123456az'),
+('B2111879', 'Dang Thanh Dat', '2003-04-25', 'datb2111879@student.ctu.edu.vn', '123456az'),
+('B2111885', 'Ha Quoc Huy', '2003-01-01', 'hab2111885@student.ctu.edu.vn', '123456az'),
+('B2111886', 'Nguyen Le Gia Hung', '2003-01-01', 'nguyenb2111886@student.ctu.edu.vn', '123456az'),
+('B2111916', 'Vo Quoc Bang', '2003-01-01', 'vob2111916@student.ctu.edu.vn', '123456az'),
+('B2111918', 'Duong Quoc Duy', '2003-01-01', 'duongb2111918@student.ctu.edu.vn', '123456az'),
+('B2111919', 'Ho Duc Dung', '2003-01-01', 'hob2111919@student.ctu.edu.vn', '123456az'),
+('B2111922', 'Nguyễn Trường Dũng Em', '2003-01-01', 'dungb2111922@student.ctu.edu.vn', '123456az'),
+('B2111924', 'Nguyen Huynh Bao Han', '2003-01-01', 'nguyenb2111924@student.ctu.edu.vn', '123456az'),
+('B2111927', 'Cao Minh Nhat Huy', '2003-01-01', 'caob2111927@student.ctu.edu.vn', '123456az'),
+('B2111929', 'Tran Dinh Khang', '2003-01-01', 'tranb2111929@student.ctu.edu.vn', '123456az'),
+('B2111930', 'Ly Phuong Khai', '2003-06-11', 'khaib2111930@student.ctu.edu.vn', '123456az'),
+('B2111933', 'Truong Dang Truc Lam', '2003-01-01', 'truongb2111933@student.ctu.edu.vn', '123456az'),
+('B2111935', 'Ngô Thành Lộc', '2003-01-01', 'locb2111935@student.ctu.edu.vn', '123456az'),
+('B2111939', 'Nguyen Yen Ngoc', '2003-03-05', 'ngocb2111939@student.ctu.edu.vn', '123456az'),
+('B2111940', 'Trần Thị Hồng Nhan', '2003-01-01', 'nhanb2111940@student.ctu.edu.vn', '123456az'),
+('B2111943', 'Lê Trần Đại Phát', '2003-01-01', 'phatb2111943@student.ctu.edu.vn', '123456az'),
+('B2111945', 'Hồ Phúc Hồng Phước', '2003-01-01', 'phuocb2111945@student.ctu.edu.vn', '123456az'),
+('B2111946', 'Tran Minh Quang', '2003-04-05', 'quangb2111946@student.ctu.edu.vn', '123456az'),
+('B2111948', 'Vo Tan Tai', '2003-01-01', 'vob2111948@student.ctu.edu.vn', '123456az'),
+('B2111949', 'Ngo Thuy Thanh Tam', '2003-07-09', 'tamb2111949@student.ctu.edu.vn', '123456az'),
+('B2111951', 'Vu Tran Quoc Thai', '2003-01-01', 'vub2111951@student.ctu.edu.vn', '123456az'),
+('B2111952', 'Le Xuan Thanh', '2003-09-03', 'thanhb2111952@student.ctu.edu.vn', '123456az'),
+('B2111955', 'Chau Dinh Thong', '2003-01-15', 'thongb2111955@student.ctu.edu.vn', '123456az'),
+('B2111957', 'Phan Trung Thuan', '2003-01-01', 'phanb2111957@student.ctu.edu.vn', '123456az'),
+('B2111959', 'Nguyen Thi Hoai Thuong', '2003-08-16', 'thuongb2111959@student.ctu.edu.vn', '123456az'),
+('B2111961', 'Phan Thi Bich Tran', '2003-01-01', 'phanb2111961@student.ctu.edu.vn', '123456az'),
+('B2111963', 'Ho Kim Trong', '2003-01-23', 'trongb2111963@student.ctu.edu.vn', '123456az'),
+('B2111964', 'Bùi Ngọc Trúc', '2003-01-01', 'trucb2111964@student.ctu.edu.vn', '123456az'),
+('B2111965', 'Trat Lam Truong', '2003-01-01', 'tratb2111965@student.ctu.edu.vn', '123456az'),
+('B2111971', 'Nguyen Duy Bang', '2003-01-01', 'nguyenb2111971@student.ctu.edu.vn', '123456az'),
+('B2111972', 'Nguyễn Trần Quang Bình', '2003-01-01', 'binhb2111972@student.ctu.edu.vn', '123456az'),
+('B2111974', 'Trần Quốc Duy', '2003-01-01', 'duyb2111974@student.ctu.edu.vn', '123456az'),
+('B2111975', 'Đỗ Thành Đạt', '2003-01-01', 'datb2111975@student.ctu.edu.vn', '123456az'),
+('B2111976', 'Hoang Tien Dat', '2003-01-01', 'hoangb2111976@student.ctu.edu.vn', '123456az'),
+('B2111978', 'Kiều Hoàng Giang', '2003-01-01', 'giangb2111978@student.ctu.edu.vn', '123456az'),
+('B2111981', 'Nguyen Truong Thien Hieu', '2003-01-01', 'nguyenb2111981@student.ctu.edu.vn', '123456az'),
+('B2111984', 'Dang Hoang Hung', '2003-01-01', 'dangb2111984@student.ctu.edu.vn', '123456az'),
+('B2111988', 'Lê Cát Lam', '2003-01-01', 'lamb2111988@student.ctu.edu.vn', '123456az'),
+('B2111989', 'Dao Thi Khanh Linh', '2003-01-01', 'daob2111989@student.ctu.edu.vn', '123456az'),
+('B2111992', 'Ngo Thanh Nam', '2003-01-01', 'ngob2111992@student.ctu.edu.vn', '123456az'),
+('B2111993', 'Nguyễn Thị Kim Ngân', '2003-01-01', 'nganb2111993@student.ctu.edu.vn', '123456az'),
+('B2111994', 'Ngo Bao Ngoc', '2003-01-01', 'ngob2111994@student.ctu.edu.vn', '123456az'),
+('B2111995', 'Tran Trung Nguyen', '2003-02-14', 'nguyenb2111995@student.ctu.edu.vn', '123456az'),
+('B2111996', 'La Hoang Nhan', '2003-01-01', 'lab2111996@student.ctu.edu.vn', '123456az'),
+('B2112000', 'Nguyễn Duy Diễm Phụng', '2003-01-01', 'phungb2112000@student.ctu.edu.vn', '123456az'),
+('B2112002', 'Tran Van Sang', '2003-01-01', 'tranb2112002@student.ctu.edu.vn', '123456az'),
+('B2112004', 'Le Thanh Tam', '2003-12-12', 'tamb2112004@student.ctu.edu.vn', '123456az'),
+('B2112005', 'Do Huy Thinh', '2003-01-01', 'dob2112005@student.ctu.edu.vn', '123456az'),
+('B2112009', 'Đỗ Huy Thịnh', '2003-01-01', 'thinhb2112009@student.ctu.edu.vn', '123456az'),
+('B2112010', 'Nguyen Phu Thinh', '2003-03-22', 'thinhb2112010@student.ctu.edu.vn', '123456az'),
+('B2112021', 'Hà Nhựt Tuấn', '2003-01-01', 'tuanb2112021@student.ctu.edu.vn', '123456az');
 
-INSERT INTO `student` (`id_student`, `name_student`, `birthday`, `email`) VALUES
-('B2014956', 'Quan Cao Phuc Tri', '2003-01-01', 'trib2014956@student.ctu.edu.vn'),
-('B2105662', 'Tran Duy Bao Anh', '2003-01-01', 'tranb2105662@student.ctu.edu.vn'),
-('B2105670', 'Duong Minh Khang', '2003-01-01', 'duongb2105670@student.ctu.edu.vn'),
-('B2111957', 'Phan Trung Thuan', '2003-01-01', 'phanb2111957@student.ctu.edu.vn'),
-('B2111971', 'Nguyen Duy Bang', '2003-01-01', 'nguyenb2111971@student.ctu.edu.vn'),
-('B2111976', 'Hoang Tien Dat', '2003-01-01', 'hoangb2111976@student.ctu.edu.vn'),
-('B2111984', 'Dang Hoang Hung', '2003-01-01', 'dangb2111984@student.ctu.edu.vn'),
-('B2111994', 'Ngo Bao Ngoc', '2003-01-01', 'ngob2111994@student.ctu.edu.vn'),
-('B2105668', 'Truong Gia Huy', '2003-01-01', 'truongb2105668@student.ctu.edu.vn'),
-('B2105686', 'Kim Duy Thanh', '2003-01-01', 'kimb2105686@student.ctu.edu.vn'),
-('B2105723', 'Danh Tan Toi', '2003-01-01', 'danhb2105723@student.ctu.edu.vn'),
-('B2105727', 'Nguyen Quang Vinh', '2003-01-01', 'nguyenb2105727@student.ctu.edu.vn'),
-('B2108121', 'Nguyen Duy Thanh', '2003-01-01', 'nguyenb2108121@student.ctu.edu.vn'),
-('B2110058', 'Ho Chi Thanh', '2003-01-01', 'hoab2110058@student.ctu.edu.vn'),
-('B2111885', 'Ha Quoc Huy', '2003-01-01', 'hab2111885@student.ctu.edu.vn'),
-('B2111886', 'Nguyen Le Gia Hung', '2003-01-01', 'nguyenb2111886@student.ctu.edu.vn'),
-('B2111916', 'Vo Quoc Bang', '2003-01-01', 'vob2111916@student.ctu.edu.vn'),
-('B2111918', 'Duong Quoc Duy', '2003-01-01', 'duongb2111918@student.ctu.edu.vn'),
-('B2111919', 'Ho Duc Dung', '2003-01-01', 'hob2111919@student.ctu.edu.vn'),
-('B2111927', 'Cao Minh Nhat Huy', '2003-01-01', 'caob2111927@student.ctu.edu.vn'),
-('B2111948', 'Vo Tan Tai', '2003-01-01', 'vob2111948@student.ctu.edu.vn'),
-('B2111951', 'Vu Tran Quoc Thai', '2003-01-01', 'vub2111951@student.ctu.edu.vn'),
-('B2111965', 'Trat Lam Truong', '2003-01-01', 'tratb2111965@student.ctu.edu.vn'),
-('B2111989', 'Dao Thi Khanh Linh', '2003-01-01', 'daob2111989@student.ctu.edu.vn'),
-('B2111992', 'Ngo Thanh Nam', '2003-01-01', 'ngob2111992@student.ctu.edu.vn'),
-('B2111996', 'La Hoang Nhan', '2003-01-01', 'lab2111996@student.ctu.edu.vn'),
-('B2112002', 'Tran Van Sang', '2003-01-01', 'tranb2112002@student.ctu.edu.vn'),
-('B2112005', 'Do Huy Thinh', '2003-01-01', 'dob2112005@student.ctu.edu.vn'),
-('B2105665', 'Lam Nhat Hao', '2003-01-01', 'lamb2105665@student.ctu.edu.vn'),
-('B2105688', 'Nguyen Phuong Thuy', '2003-01-01', 'nguyenb2105688@student.ctu.edu.vn'),
-('B2105718', 'Nguyen Van Quy', '2003-01-01', 'nguyenb2105718@student.ctu.edu.vn'),
-('B2105721', 'Nguyen Thai Thuan', '2003-01-01', 'nguyenb2105721@student.ctu.edu.vn'),
-('B2109666', 'To Kieu Diem Quynh', '2003-01-01', 'tob2109666@student.ctu.edu.vn'),
-('B2111862', 'Pham Tran Anh Tai', '2003-01-01', 'phamb2111862@student.ctu.edu.vn'),
-('B2111924', 'Nguyen Huynh Bao Han', '2003-01-01', 'nguyenb2111924@student.ctu.edu.vn'),
-('B2111929', 'Tran Dinh Khang', '2003-01-01', 'tranb2111929@student.ctu.edu.vn'),
-('B2111933', 'Truong Dang Truc Lam', '2003-01-01', 'truongb2111933@student.ctu.edu.vn'),
-('B2111961', 'Phan Thi Bich Tran', '2003-01-01', 'phanb2111961@student.ctu.edu.vn'),
-('B2111981', 'Nguyen Truong Thien Hieu', '2003-01-01', 'nguyenb2111981@student.ctu.edu.vn');
 -- --------------------------------------------------------
 
 --
@@ -411,14 +414,3 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
-SET SQL_SAFE_UPDATES = 0;
-
-ALTER TABLE `student`
-    ADD COLUMN `pwd` VARCHAR(8) DEFAULT NULL;
-
-UPDATE `student`
-    SET `pwd` = '123456az'
-    WHERE id_student IS NOT NULL;
-
-SET SQL_SAFE_UPDATES = 1;

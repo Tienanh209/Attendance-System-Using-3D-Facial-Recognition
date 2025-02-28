@@ -24,7 +24,7 @@ class attendance:
         self.teacher_name = self.get_teacher_name(self.teacher_id)
         self.camera_name = 1
         self.root = root
-        self.root.geometry("1530x790+0+0")
+        self.root.geometry("1530x1000+0+0")
         self.root.title("Attendance")
         self.isClickedClose = False
         self.recognition_start_time = {}
@@ -48,16 +48,16 @@ class attendance:
             print("File không tồn tại:", img)
 
         img = Image.open(img)
-        img = img.resize((1530, 790))
+        img = img.resize((1530, 1000))
 
         self.imgtk = ImageTk.PhotoImage(img)
 
         lbl_bg = Label(self.root, image=self.imgtk, bg='white', width=1530, height=790)
         lbl_bg.place(x=0, y=0)
-
-        heading = Label(self.root, text="Hệ thống điểm danh khuôn mặt", font=("yu gothic ui", 20, "bold"), bg="white",
+            #ok one
+        heading = Label(self.root, text="Hệ thống điểm danh khuôn mặt", font=("yu gothic ui", 15, "bold"), bg="white",
                            fg="#57a1f8", bd=0, relief=FLAT)
-        heading.place(x=400, y=20, width=650, height=40)
+        heading.place(x=400, y=10, width=650, height=30)
 
         # LEFT FRAME
         self.left_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE, text="Camera",
@@ -98,7 +98,7 @@ class attendance:
         # Find section - Use ONLY the Combobox
         search_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE, text="Find section class",
                                   font=("times new roman", 12, "bold"))
-        search_frame.place(x=910, y=90, width=250, height=80)
+        search_frame.place(x=10, y=800, width=250, height=80)
 
         self.var_section_class = StringVar()  # Keep this for the Combobox's value
         self.cbb_section_class = ttk.Combobox(search_frame, textvariable=self.var_section_class, state='readonly')
@@ -127,13 +127,12 @@ class attendance:
         # RIGHT FRAME
         self.Right_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE,
                                          text="List of students", font=("times new roman", 12, "bold"))
-        self.Right_frame.place(x=880, y=220, width=630, height=470)
+        self.Right_frame.place(x=880, y=40, width=630, height=900)
 
         # Tạo Treeview và Scrollbar
         self.tree = ttk.Treeview(self.Right_frame,
                                  columns=("ID", "Name", "Birth", "Time", "Date", "Section", "Status"),
-                                 show="headings", height=15)
-
+                                 show="headings", height=50)
         self.tree.heading("ID", text="ID")
         self.tree.heading("Name", text="Name")
         self.tree.heading("Birth", text="Birth")
@@ -162,11 +161,11 @@ class attendance:
 
         self.finish_btn = Button(self.root, text="Finish", command=self.finish_session,
                                  font=("times new roman", 12), bg="lightblue")
-        self.finish_btn.place(x=950, y=720, width=180, height=40)
+        self.finish_btn.place(x=950, y=930, width=180, height=40)
 
         self.export_btn = Button(self.root, text="Xuất Excel", command=self.export_excel,
                                     font=("times new roman", 12), bg="lightblue")
-        self.export_btn.place(x=1270, y=720, width=180, height=40)
+        self.export_btn.place(x=1270, y=930, width=180, height=40)
 
     import json
 
@@ -368,14 +367,14 @@ class attendance:
 
                 #==== print details
                 frame_details = LabelFrame(self.root, text="Details of section", bg="white")
-                frame_details.place(x=1200, y=60, width=300, height=150)
+                frame_details.place(x=400, y=800, width=300, height=150)
 
                 lbl_id_subject = Label(frame_details, text=f"ID Subject: {id_subject}", font=("yu gothic ui", 14), fg="black",
                                        bg="white")
                 lbl_id_subject.place(x=5, y=5)
 
                 lbl_credit = Label(frame_details, text=f"Credit: {credit}", font=("yu gothic ui", 14), fg="black", bg="white")
-                lbl_credit.place(x=200, y=5)
+                lbl_credit.place(x=500, y=5)
 
                 lbl_name_subject = Label(frame_details, text=f"{name_subject}", font=("yu gothic ui", 14), fg="black",
                                          bg="white")
