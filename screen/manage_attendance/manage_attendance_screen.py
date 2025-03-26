@@ -5,6 +5,8 @@ from datetime import *
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+
+import dlib
 from PIL import ImageTk, Image
 import mysql.connector
 import os
@@ -16,6 +18,25 @@ from sklearn.metrics.pairwise import cosine_similarity
 from concurrent.futures import ThreadPoolExecutor
 import logging
 import time
+import onnxruntime
+
+from screen.manage_attendance.anti_spoofing import FaceAntiSpoofing
+
+
+def calculate_iou(box1, box2):
+    # box1 và box2 có định dạng [x1, y1, x2, y2]
+    x1 = max(box1[0], box2[0])
+    y1 = max(box1[1], box2[1])
+    x2 = min(box1[2], box2[2])
+    y2 = min(box1[3], box2[3])
+
+    intersection = max(0, x2 - x1) * max(0, y2 - y1)
+    area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    union = area1 + area2 - intersection
+
+    return intersection / union if union > 0 else 0
+
 
 class attendance:
     def __init__(self, root):
@@ -38,7 +59,22 @@ class attendance:
         self.similarity_threshold = 0.5
         self.frame_width = 640
         self.frame_height = 480
+        self.face_anti_spoofing = FaceAntiSpoofing()
+        self.enable_anti_spoofing = True
 
+        # self.face_detector = dlib.get_frontal_face_detector()
+        # self.landmark_predictor = dlib.shape_predictor(
+        #     "shape_predictor_68_face_landmarks.dat")  # Đảm bảo file này tồn tại
+        # # Trong __init__, phần tạo các nút
+        # self.anti_spoofing_btn = Button(self.left_frame, text="Anti-Spoof: ON", bg="#57a1f8",
+        #                                 fg="black", command=self.toggle_anti_spoofing)
+        # self.anti_spoofing_btn.place(x=300, y=580, width=180, height=50)
+
+        # Thêm phương thức toggle
+        def toggle_anti_spoofing(self):
+            self.enable_anti_spoofing = not self.enable_anti_spoofing
+            status = "ON" if self.enable_anti_spoofing else "OFF"
+            self.anti_spoofing_btn.config(text=f"Anti-Spoof: {status}")
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         img = os.path.join(BASE_DIR,'..', '..', 'assets', 'ImageDesign', 'img.png')
@@ -514,218 +550,149 @@ class attendance:
     img = "DataProcessed/.jpg"
 
     def realtime_face_recognition(self):
-        self.run_face_recognition_3d(
+        self.run_face_recognition_3d_with_anti_spoofing(
             embeddings_dir=self.embeddings_dir,
-            depth_min=self.depth_min,
-            depth_max=self.depth_max,
             similarity_threshold=self.similarity_threshold,
             frame_width=self.frame_width,
             frame_height=self.frame_height
         )
 # 300,1500
-    def run_face_recognition_3d(self, embeddings_dir='../../assets/DataEmbeddings/', depth_min=0, depth_max=15000000,
-                                similarity_threshold=0.5, frame_width=640, frame_height=480):
-
-        # Kiểm tra xem thư mục có tồn tại không
+    def run_face_recognition_3d_with_anti_spoofing(self, embeddings_dir='../../assets/DataEmbeddings/',
+                                                   similarity_threshold=0.5, frame_width=640, frame_height=480):
         if not os.path.exists(embeddings_dir):
             raise ValueError(f"Directory does not exist: {embeddings_dir}")
         print(f"Embeddings directory: {embeddings_dir}")
-        # Cấu hình logging
+
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger(__name__)
 
-
         def _load_database():
             database = {}
-            try:
-                for file in os.listdir(embeddings_dir):
-                    if file.endswith("_embedding.npy"):
-                        #person_id = os.path.splitext(file)[0]
-                        person_id = file.split('_embedding.npy')[0]
-                        database[person_id] = np.load(os.path.join(embeddings_dir, file))
-                logger.info(f"Đã tải thành công {len(database)} embeddings")
-                return database
-            except Exception as e:
-                logger.error(f"Lỗi khi tải database: {str(e)}")
-                raise
-
-        def _setup_realsense():
-            pipeline = rs.pipeline()
-            config = rs.config()
-            # Lấy thông tin thiết bị
-            context = rs.context()
-            devices = context.query_devices()
-            for device in devices:
-                logger.info(f"Thiết bị được kết nối: {device.get_info(rs.camera_info.name)}")
-                logger.info(f"Serial number: {device.get_info(rs.camera_info.serial_number)}")
-                logger.info(f"Firmware version: {device.get_info(rs.camera_info.firmware_version)}")
-            # Thêm bộ lọc để cải thiện chất lượng depth
-            config.enable_stream(rs.stream.color, frame_width, frame_height, rs.format.bgr8, 15)
-            config.enable_stream(rs.stream.depth, frame_width, frame_height, rs.format.z16, 15)
-
-            # Align depth với color frame
-            align = rs.align(rs.stream.color)
-
-            try:
-                pipeline.start(config)
-                logger.info("Đã khởi tạo RealSense camera thành công")
-                return pipeline, align
-            except Exception as e:
-                logger.error(f"Lỗi khởi tạo camera: {str(e)}")
-                raise
+            for file in os.listdir(embeddings_dir):
+                if file.endswith("_embedding.npy"):
+                    person_id = file.split('_embedding.npy')[0]
+                    database[person_id] = np.load(os.path.join(embeddings_dir, file))
+            logger.info(f"Đã tải thành công {len(database)} embeddings")
+            return database
 
         def _setup_face_analyzer():
-            app = FaceAnalysis(providers=['CPUExecutionProvider'])
-            app.prepare(ctx_id=-1)
+            app = FaceAnalysis(providers=['CUDAExecutionProvider'])
+            app.prepare(ctx_id=0)
             return app
 
         def _find_best_match(embedding, database):
             if not database:
                 return "No database loaded", 0
-
-            similarities = {k: cosine_similarity([embedding], [v])[0][0]
-                            for k, v in database.items()}
+            similarities = {k: cosine_similarity([embedding], [v])[0][0] for k, v in database.items()}
             best_match = max(similarities, key=similarities.get)
             confidence = similarities[best_match]
-
             return (best_match, confidence) if confidence > similarity_threshold else ("Unknown", confidence)
 
-        def _process_face(face, depth_image, depth_frame, database):
-
+        def _process_face(face, database):
             box = face.bbox.astype(int)
             embedding = face.embedding
-
-            # Lấy vùng depth của khuôn mặt
-            center_x = min(max((box[0] + box[2]) // 2, 0), depth_image.shape[1] - 1)
-            center_y = min(max((box[1] + box[3]) // 2, 0), depth_image.shape[0] - 1)
-
-            depth_value = depth_frame.get_distance(center_x, center_y) * 1000  # Đổi sang mm
-
-            # Kiểm tra liveness
-            if not (depth_min < depth_value < depth_max):
-                return box, "Don't Know", depth_value, 0  # Chỉ nếu depth thực sự không hợp lệ
-
             person_id, confidence = _find_best_match(embedding, database)
-
             if person_id == "No database loaded" or person_id == "Unknown":
-                return box, "Unknown", depth_value, confidence  # Người lạ, không phải Don't Know
+                return box, "Unknown", confidence
+            return box, person_id, confidence
 
-            return box, person_id, depth_value, confidence
-
-        # Tải cơ sở dữ liệu
+        # Load dữ liệu embeddings
         database = _load_database()
-
-        # Khởi tạo RealSense
-        pipeline, align = _setup_realsense()
 
         # Khởi tạo FaceAnalyzer
         face_analyzer = _setup_face_analyzer()
 
-        # Khởi tạo ThreadPoolExecutor
         executor = ThreadPoolExecutor(max_workers=2)
+        iou_threshold = 0.5  # Ngưỡng IoU để xác định hai hộp giới hạn khớp nhau
+
         try:
-            last_fps_time = time.time()
-            frame_count = 0
-            fps = 0  # Khởi tạo fps với giá trị mặc định
-
             while True:
-                if self.isClickedClose == False:
+                if not self.isClickedClose:
                     break
-                # Lấy và xử lý frame
-                frames = pipeline.wait_for_frames()
-                aligned_frames = align.process(frames)
 
-                color_frame = aligned_frames.get_color_frame()
-                depth_frame = aligned_frames.get_depth_frame()
-
-                if not color_frame or not depth_frame:
+                # Lấy frame từ hệ thống anti-spoofing
+                result = self.face_anti_spoofing.process_frame()
+                if result is None:
                     continue
+                color_image, depth_image = result
 
-                color_image = np.asanyarray(color_frame.get_data())
-                depth_image = np.asanyarray(depth_frame.get_data())
+                # Phát hiện khuôn mặt với anti-spoofing
+                face_results = self.face_anti_spoofing.detect_faces(color_image, depth_image)
 
-                # Tính FPS
-                frame_count += 1
-                current_time = time.time()
-                if current_time - last_fps_time > 1:
-                    fps = frame_count
-                    frame_count = 0
-                    last_fps_time = current_time
+                # Tạo danh sách các hộp giới hạn của khuôn mặt thật (nếu anti-spoofing bật)
+                if self.enable_anti_spoofing:
+                    real_face_boxes = [
+                        [res['face'].left(), res['face'].top(), res['face'].right(), res['face'].bottom()]
+                        for res in face_results if res['is_real']
+                    ]
+                else:
+                    real_face_boxes = [
+                        [res['face'].left(), res['face'].top(), res['face'].right(), res['face'].bottom()]
+                        for res in face_results
+                    ]  # Nếu tắt anti-spoofing, coi tất cả khuôn mặt là thật
 
-                # Nhận diện khuôn mặt
+                # Nhận diện khuôn mặt với InsightFace
                 faces = face_analyzer.get(color_image)
+                face_futures = [executor.submit(_process_face, face, database) for face in faces]
 
-                # Xử lý song song các khuôn mặt
-                face_futures = [
-                    executor.submit(_process_face, face, depth_image, depth_frame, database)
-                    for face in faces
-                ]
-
-                detected_ids = []  # Khởi tạo list để lưu các ID đã nhận diện
-
-                # Hiển thị kết quả
+                detected_ids = []
                 for future in face_futures:
-                    box, person_id, depth_value, confidence = future.result()
+                    box, person_id, confidence = future.result()
 
-                    # Chỉ nhận diện nếu confidence lớn hơn ngưỡng
-                    if confidence > self.similarity_threshold and person_id != "Unknown":
-                        detected_ids.append(person_id)  # Thêm ID vào danh sách đã nhận diện
+                    # Kiểm tra xem khuôn mặt nhận diện có khớp với khuôn mặt thật không
+                    if self.enable_anti_spoofing:
+                        is_real = any(calculate_iou(box, real_box) > iou_threshold for real_box in real_face_boxes)
+                    else:
+                        is_real = True  # Nếu tắt anti-spoofing, coi tất cả là thật
 
-                        # Cập nhật trạng thái điểm danh
+                    # Chỉ điểm danh nếu khuôn mặt là thật và nhận diện thành công
+                    if is_real and person_id != "Unknown" and confidence > similarity_threshold:
+                        detected_ids.append(person_id)
                         current_time = datetime.now()
-                        for person_id in detected_ids:
-                            if person_id in self.recognition_start_time:
-                                if (current_time - self.recognition_start_time[person_id]).total_seconds() >= 1:
-                                    self.update_attendance(person_id)
-                                    self.recognition_start_time.pop(person_id)
-                            else:
-                                self.recognition_start_time[person_id] = current_time
-                # Cập nhật điểm danh ngay khi nhận diện
+                        if person_id in self.recognition_start_time:
+                            if (current_time - self.recognition_start_time[person_id]).total_seconds() >= 1:
+                                self.update_attendance(person_id)
+                                self.recognition_start_time.pop(person_id)
+                        else:
+                            self.recognition_start_time[person_id] = current_time
 
-                    # Vẽ khung và thông tin trên ảnh màu
-                    color = (0, 255, 0) if person_id != "Don't Know" else (0, 0, 255)
+                    # Vẽ kết quả lên ảnh
+                    color = (0, 255, 0) if is_real and person_id != "Unknown" else (0, 0, 255)
+                    label = f"{person_id} ({confidence:.2f})" if is_real else "Fake"
                     cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), color, 2)
+                    cv2.putText(color_image, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
-                    label = f"{person_id} ({confidence:.2f})" if person_id != "Don't Know" else person_id
-                    cv2.putText(color_image, label, (box[0], box[1] - 10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
-                    cv2.putText(color_image, f"Depth: {depth_value:.0f}mm",
-                                (box[0], box[3] + 20),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
+                print("DETECT: " + ', '.join(detected_ids))
 
-                print("DETECT ne " + ', '.join(detected_ids))
-                # Cập nhật danh sách recognized_students
                 if not hasattr(self, 'recognized_students'):
                     self.recognized_students = []
                 self.recognized_students.extend(detected_ids)
-                self.recognized_students = list(set(self.recognized_students))  # Loại bỏ trùng lặp
+                self.recognized_students = list(set(self.recognized_students))
 
-                # Hiển thị FPS
-                cv2.putText(color_image, f"FPS: {fps}", (10, 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-
-                # Hiển thị ảnh màu
-                #cv2.imshow("3D Face Recognition", color_image)
+                # Hiển thị frame
                 rgb_frame = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
                 rgb_frame = Image.fromarray(rgb_frame)
                 tk_frame = ImageTk.PhotoImage(rgb_frame)
                 self.panel['image'] = tk_frame
                 self.panel.update()
-                # Thoát nếu nhấn phím 'q'
+
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
-
 
         except Exception as e:
             logger.error(f"Lỗi trong quá trình xử lý: {str(e)}")
         finally:
             logger.info("Đang dọn dẹp tài nguyên...")
-            pipeline.stop()
+            self.face_anti_spoofing.pipeline.stop()
             executor.shutdown()
             cv2.destroyAllWindows()
+
+
 
 if __name__=="__main__":
     root=Tk()
     obj=attendance(root)
 
     root.mainloop()
+
+
