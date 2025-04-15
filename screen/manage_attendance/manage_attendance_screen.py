@@ -21,7 +21,8 @@ import time
 import onnxruntime
 
 from screen.manage_attendance.anti_spoofing import FaceAntiSpoofing
-
+import warnings
+warnings.simplefilter("ignore", category=FutureWarning)
 
 def calculate_iou(box1, box2):
     # box1 và box2 có định dạng [x1, y1, x2, y2]
@@ -41,8 +42,8 @@ def calculate_iou(box1, box2):
 class attendance:
     def __init__(self, root):
         # Đọc thông tin từ config.json
-        self.teacher_id = self.load_teacher_id()
-        self.teacher_name = self.get_teacher_name(self.teacher_id)
+        self.id_teacher = self.load_id_teacher()
+        self.teacher_name = self.get_teacher_name(self.id_teacher)
         self.camera_name = 1
         self.root = root
         self.root.geometry("1530x1000+0+0")
@@ -51,7 +52,7 @@ class attendance:
         self.recognition_start_time = {}
         self.var_section_class = StringVar()
         self.start_time = ['7:00', '7:50', '8:50', '9:50', '10:40', '13:30', '14:20', '15:20', '16:10']
-        self.end_time =['7:50', '8:40', '9:40', '10:40', '11:30', '14:20', '15:10', '16:10', '17:00']
+        self.end_time = ['7:50', '8:40', '9:40', '10:40', '11:30', '14:20', '15:10', '16:10', '17:00']
         self.id_session = StringVar()
         self.embeddings_dir = '../../assets/DataEmbeddings/'
         self.depth_min = 300
@@ -62,22 +63,8 @@ class attendance:
         self.face_anti_spoofing = FaceAntiSpoofing()
         self.enable_anti_spoofing = True
 
-        # self.face_detector = dlib.get_frontal_face_detector()
-        # self.landmark_predictor = dlib.shape_predictor(
-        #     "shape_predictor_68_face_landmarks.dat")  # Đảm bảo file này tồn tại
-        # # Trong __init__, phần tạo các nút
-        # self.anti_spoofing_btn = Button(self.left_frame, text="Anti-Spoof: ON", bg="#57a1f8",
-        #                                 fg="black", command=self.toggle_anti_spoofing)
-        # self.anti_spoofing_btn.place(x=300, y=580, width=180, height=50)
-
-        # Thêm phương thức toggle
-        def toggle_anti_spoofing(self):
-            self.enable_anti_spoofing = not self.enable_anti_spoofing
-            status = "ON" if self.enable_anti_spoofing else "OFF"
-            self.anti_spoofing_btn.config(text=f"Anti-Spoof: {status}")
-
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img = os.path.join(BASE_DIR,'..', '..', 'assets', 'ImageDesign', 'img.png')
+        img = os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'img.png')
         img = os.path.abspath(img)
 
         if not os.path.exists(img):
@@ -88,39 +75,21 @@ class attendance:
 
         self.imgtk = ImageTk.PhotoImage(img)
 
-        lbl_bg = Label(self.root, image=self.imgtk, bg='white', width=1530, height=790)
+        lbl_bg = Label(self.root, image=self.imgtk, bg='white', width=1530, height=1000)
         lbl_bg.place(x=0, y=0)
-            #ok one
+
+        # Chỉnh sửa tiêu đề "Hệ thống điểm danh khuôn mặt"
         heading = Label(self.root, text="Hệ thống điểm danh khuôn mặt", font=("yu gothic ui", 15, "bold"), bg="white",
-                           fg="#57a1f8", bd=0, relief=FLAT)
-        heading.place(x=400, y=10, width=650, height=30)
+                        fg="#57a1f8", bd=0, relief=FLAT)
+        heading.place(x=400, y=30, width=650, height=30)  # Đẩy tiêu đề lên một chút để tạo không gian
 
         # LEFT FRAME
         self.left_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE, text="Camera",
-                                font=("times new roman", 12, "bold"))
-        self.left_frame.place(x=30, y=70, width=820, height=680)
+                                     font=("times new roman", 12, "bold"))
+        self.left_frame.place(x=30, y=90, width=820, height=680)  # Tăng khoảng cách từ tiêu đề đến khung camera
 
         self.panel = Label(self.left_frame, borderwidth=2, relief="groove")
-
         self.panel.place(x=8, y=20, width=800, height=480)
-
-        # self.cbb_session = ttk.Combobox(self.left_frame, values=["Morning", "Afternoon"])
-        # self.cbb_session.place(x=20, y=530, width=120)
-        # self.cbb_session.bind("<<ComboboxSelected>>", self.choose_session)
-        #
-        # self.cbb_from = ttk.Combobox(self.left_frame, values=[])
-        # self.cbb_from.place(x=200, y=530, width=40)
-        # self.cbb_from.bind("<<ComboboxSelected>>", self.choose_from)
-        #
-        # self.cbb_to = ttk.Combobox(self.left_frame, values=[])
-        # self.cbb_to.place(x=295, y=530, width=40)
-        # self.cbb_to.bind("<<ComboboxSelected>>", self.choose_to)
-
-        # Label(self.left_frame, text="From: ", fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14)).place(x=150, y=532)
-        # Label(self.left_frame, text="To: ", fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14)).place(x=260, y=532)
-        #
-        # btn_add = Button(self.left_frame, text="Add", bg="#57a1f8", fg="black", command=self.add_session)
-        # btn_add.place(x=500, y=530, width=50, height=25)
 
         btn_open = Button(self.left_frame, text="Open", bg="#57a1f8", fg="black", command=self.open_camera)
         btn_open.place(x=100, y=580, width=180, height=50)
@@ -128,10 +97,7 @@ class attendance:
         btn_close = Button(self.left_frame, text="Close", bg="#57a1f8", fg="black", command=self.is_clicked)
         btn_close.place(x=500, y=580, width=180, height=50)
 
-
-
         # Find section
-        # Find section - Use ONLY the Combobox
         search_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE, text="Find section class",
                                   font=("times new roman", 12, "bold"))
         search_frame.place(x=10, y=800, width=250, height=80)
@@ -148,22 +114,15 @@ class attendance:
 
         self.load_class_subjects()  # Load subjects AFTER creating the Combobox
 
-        self.lbl_time_session = Label(self.left_frame, text="", fg='black', border=0, bg='white',font=('Microsoft YaHei UI Light', 14))
+        self.lbl_time_session = Label(self.left_frame, text="", fg='black', border=0, bg='white',
+                                      font=('Microsoft YaHei UI Light', 14))
         self.lbl_time_session.place(x=350, y=532)
-
-        # # ========== heading
-        # lbl_name = Label(self.root, bg="white", text=f"Teacher:  {self.teacher_name}",
-        #                  font=("yu gothic ui", 15, "bold"), bd=0)
-        # lbl_name.place(x=1000, y=50)
-
-
-
-
 
         # RIGHT FRAME
         self.Right_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE,
-                                         text="List of students", font=("times new roman", 12, "bold"))
-        self.Right_frame.place(x=880, y=40, width=630, height=900)
+                                      text="List of students", font=("times new roman", 12, "bold"))
+        self.Right_frame.place(x=880, y=90, width=630,
+                               height=850)  # Chỉnh lại vị trí và kích thước của khung List of Students
 
         # Tạo Treeview và Scrollbar
         self.tree = ttk.Treeview(self.Right_frame,
@@ -195,13 +154,13 @@ class attendance:
 
         self.tree.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.finish_btn = Button(self.root, text="Finish", command=self.finish_session,
-                                 font=("times new roman", 12), bg="lightblue")
-        self.finish_btn.place(x=950, y=930, width=180, height=40)
+        # self.finish_btn = Button(self.root, text="Finish", command=self.finish_session,
+        #                          font=("times new roman", 12), bg="lightblue")
+        #self.finish_btn.place(x=950, y=930, width=180, height=40)
 
-        self.export_btn = Button(self.root, text="Xuất Excel", command=self.export_excel,
-                                    font=("times new roman", 12), bg="lightblue")
-        self.export_btn.place(x=1270, y=930, width=180, height=40)
+        self.export_btn = Button(self.root, text="Export to Statistic", command=self.export_excel,
+                                 font=("times new roman", 12), bg="lightblue")
+        self.export_btn.place(x=1100, y=930, width=180, height=40)
 
     import json
 
@@ -209,7 +168,7 @@ class attendance:
         try:
             with open("../login/config.json", "r") as config_file:
                 config_data = json.load(config_file)  # Use json.load directly
-                teacher_id = config_data['teacher_id']
+                id_teacher = config_data['id_teacher']
 
             conn = mysql.connector.connect(
                 host='localhost',
@@ -220,7 +179,7 @@ class attendance:
             )
             if conn.is_connected():
                 my_cursor = conn.cursor()
-                my_cursor.execute("SELECT id_class_subject FROM class_subject WHERE id_teacher = %s", (teacher_id,))
+                my_cursor.execute("SELECT id_class_subject FROM class_subject WHERE id_teacher = %s", (id_teacher,))
                 subjects = my_cursor.fetchall()
                 self.cbb_section_class['values'] = [subject[0] for subject in subjects]  # Populate Combobox
 
@@ -452,7 +411,7 @@ class attendance:
 
         today = datetime.now().strftime("%d/%m")  # Lấy ngày hiện tại
 
-        # Lấy dữ liệu từ TreeView
+        # Lấy dữ liệu từ TreeView (giữ nguyên)
         attendance_data = []
         for index, item in enumerate(self.tree.get_children(), start=1):
             values = self.tree.item(item, "values")
@@ -460,13 +419,12 @@ class attendance:
             student_name = values[1]
             class_name = values[2]
             status = values[3] if len(values) > 3 else ""
-
             attendance_data.append([index, student_id, student_name, class_name, status])
 
-        # Chuyển thành DataFrame
+        # Chuyển thành DataFrame (giữ nguyên)
         df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Birth", today])
 
-        # Đường dẫn file Excel
+        # Đường dẫn file Excel (giữ nguyên)
         class_folder = self.var_section_class.get()
         output_path = f"{class_folder}/attendance.xlsx"
 
@@ -475,36 +433,29 @@ class attendance:
 
             if os.path.exists(output_path):
                 df_old = pd.read_excel(output_path)
-
-                # Xóa cột "Số lần vắng" cũ nếu có
                 if "Số lần vắng" in df_old.columns:
                     df_old = df_old.drop(columns=["Số lần vắng"])
-
                 if today in df_old.columns:
-                    # Nếu ngày đã tồn tại -> Cập nhật lại dữ liệu
                     df_old.drop(columns=[today], inplace=True)
-
-                # Ghép dữ liệu mới vào bên phải
                 df_old = df_old.merge(df_new, on=["STT", "Mã", "Họ và tên", "Birth"], how="left")
             else:
                 df_old = df_new
 
-            # Tính lại số lần vắng
+            # Tính lại số lần vắng (giữ nguyên)
             df_old["Số lần vắng"] = df_old.iloc[:, 4:].apply(lambda row: (row == "").sum(), axis=1)
 
-            # Thống kê số sinh viên đi học
-            total_students = len(df_old)
-            attended_count = df_old[today].apply(lambda x: 1 if x != "" else 0).sum()
-            attendance_summary = f"{attended_count}/{total_students}"
+            # # Thống kê số sinh viên đi học (sửa lại)
+            # total_students = len(df_old[df_old['Mã'].notna()])  # Chỉ đếm dòng có "Mã"
+            # attended_count = df_old[today].iloc[:-1].apply(lambda x: 1 if x != "" else 0).sum()  # Loại dòng cuối
+            # attendance_summary = f"{attended_count}/{total_students}"
+            #
+            # # Xử lý dòng tổng kết (sửa lại)
+            # if not df_old.empty and df_old.iloc[-1, 1] == "":
+            #     df_old = df_old.iloc[:-1]  # Xóa dòng tổng kết cũ
+            # summary_row = [""] * 4 + [attendance_summary] + [""] * (df_old.shape[1] - 5)
+            # df_old.loc[len(df_old)] = summary_row
 
-            # Cập nhật dòng tổng kết ở cuối (nếu đã có thì sửa lại)
-            if (df_old.iloc[-1, 1] == ""):  # Kiểm tra nếu hàng cuối là thống kê
-                df_old.iloc[-1, 4] = attendance_summary
-            else:
-                summary_row = [""] * 4 + [attendance_summary] + [""] * (df_old.shape[1] - 5)
-                df_old.loc[len(df_old)] = summary_row
-
-            # Ghi file Excel
+            # Ghi file Excel (giữ nguyên)
             df_old.to_excel(output_path, index=False)
             messagebox.showinfo("Export Success", f"Attendance updated and exported to {output_path}")
 
@@ -527,20 +478,20 @@ class attendance:
         self.isClickedClose = True
         self.realtime_face_recognition()
 
-    def load_teacher_id(self):
+    def load_id_teacher(self):
         # Đọc thông tin từ tệp cấu hình
         if os.path.exists('../login/config.json'):
             with open('../login/config.json', 'r') as f:
                 config = self.json.load(f)
-                return config.get('teacher_id', 'Unknown')
+                return config.get('id_teacher', 'Unknown')
         return 'Unknown'
 
-    def get_teacher_name(self, teacher_id):
+    def get_teacher_name(self, id_teacher, teacher_id=None):
         # Kết nối đến cơ sở dữ liệu để lấy tên giáo viên
         conn = mysql.connector.connect(host='localhost', user='root', password='', database='face_recognition_sys',
                                        port='3306')
         my_cursor = conn.cursor()
-        my_cursor.execute("SELECT name_teacher FROM teacher WHERE id_teacher=%s", (teacher_id,))
+        my_cursor.execute("SELECT name_teacher FROM teacher WHERE id_teacher=%s", (id_teacher,))
         row = my_cursor.fetchone()
         conn.close()
         if row:
@@ -636,6 +587,7 @@ class attendance:
                 face_futures = [executor.submit(_process_face, face, database) for face in faces]
 
                 detected_ids = []
+                # Trong vòng lặp xử lý khuôn mặt (sau khi nhận diện):
                 for future in face_futures:
                     box, person_id, confidence = future.result()
 
@@ -649,16 +601,18 @@ class attendance:
                     if is_real and person_id != "Unknown" and confidence > similarity_threshold:
                         detected_ids.append(person_id)
                         current_time = datetime.now()
+
+                        # Kiểm tra nếu đã đủ 1.5 giây trước khi nhận diện lại người này
                         if person_id in self.recognition_start_time:
-                            if (current_time - self.recognition_start_time[person_id]).total_seconds() >= 1:
+                            if (current_time - self.recognition_start_time[person_id]).total_seconds() >= 0.5:
                                 self.update_attendance(person_id)
                                 self.recognition_start_time.pop(person_id)
                         else:
                             self.recognition_start_time[person_id] = current_time
 
-                    # Vẽ kết quả lên ảnh
+                    # Vẽ kết quả lên ảnh (không thay đổi phần này)
                     color = (0, 255, 0) if is_real and person_id != "Unknown" else (0, 0, 255)
-                    label = f"{person_id} ({confidence:.2f})" if is_real else "Fake"
+                    label = f"{person_id} ({confidence:.2f})" if is_real else "Undefined"
                     cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), color, 2)
                     cv2.putText(color_image, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 

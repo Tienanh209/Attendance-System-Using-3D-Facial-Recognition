@@ -47,7 +47,7 @@ class LoginWindow:
     def save_teacher_id(self, teacher_id):
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the current script
         config_path = os.path.join(BASE_DIR, 'config.json')
-        config_data = {"teacher_id": teacher_id}
+        config_data = {"id_teacher": teacher_id}
 
         with open(config_path, "w") as f:
             json.dump(config_data, f, indent=4)
@@ -112,7 +112,6 @@ class LoginWindow:
 
             conn.commit()
             conn.close()
-
     def clear_username(self, event):
         if self.ent_user.get() == 'Username':
             self.ent_user.delete(0, END)

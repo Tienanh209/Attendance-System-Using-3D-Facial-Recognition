@@ -101,7 +101,7 @@ class FaceAntiSpoofing:
             face = result['face']
             is_real = result['is_real']
             color = (0, 255, 0) if is_real else (0, 0, 255)
-            label = "Real" if is_real else "Fake"
+            label = "Real" if is_real else "Undefined"
             cv2.rectangle(color_image, (face.left(), face.top()), (face.right(), face.bottom()), color, 2)
             cv2.putText(color_image, label, (face.left(), face.top() - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, color, 2)
         return color_image

@@ -3,7 +3,7 @@ from datetime import datetime
 from tkinter import *
 from PIL import ImageTk, Image
 from screen.student_view.student_view_screen import student_view
-from screen.manage_attendance.manage_attendance_screen import attendance
+from screen.manage_attendance.manage_attendance_abc import attendance
 from screen.manage_attendance.statistic_screen import statisticExcel
 
 from screen.train_model.train_model_from_images_screen import traindata
