@@ -67,7 +67,6 @@ class FaceAntiSpoofing:
                 print("Dữ liệu chiều sâu không hợp lệ")
                 continue
 
-            # Tính toán các giá trị chiều sâu
             nose_depth = landmark_depths[self.nose_tip_index]
             mean_left_eye_depth = np.mean([landmark_depths[i] for i in self.left_eye_indices if landmark_depths[i] > 0])
             mean_right_eye_depth = np.mean([landmark_depths[i] for i in self.right_eye_indices if landmark_depths[i] > 0])

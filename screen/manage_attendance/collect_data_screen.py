@@ -1,162 +1,202 @@
-import cv2
-import numpy as np
-import insightface
-from insightface.app import FaceAnalysis
 import os
+import numpy as np
+import cv2
+import pyrealsense2 as rs
+import dlib
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
-import math
 
-# Khởi tạo thư mục lưu embeddings
-embedding_dir = "embeddings/"
-if not os.path.exists(embedding_dir):
-    os.makedirs(embedding_dir)
+class FaceAntiSpoofingApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Face Anti-Spoofing Data Collection")
+        self.root.geometry("1000x650")
+        self.root.configure(bg="#B3E5FC")  # Màu nền xanh biển nhạt
 
-# Khởi tạo bộ nhận diện khuôn mặt InsightFace
-app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
-app.prepare(ctx_id=0, det_size=(640, 640))
+        # Khởi tạo thư mục lưu dữ liệu
+        self.data_dir = "../../assets/AntiSpoofing_DT"
+        os.makedirs(self.data_dir, exist_ok=True)
 
-# Khởi tạo webcam
-cap = cv2.VideoCapture(0)
+        # Thiết lập camera RealSense
+        self.pipeline = rs.pipeline()
+        config = rs.config()
+        config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+        config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+        self.profile = self.pipeline.start(config)
+        self.align = rs.align(rs.stream.color)
 
-# === Khởi tạo cửa sổ Tkinter ===
-root = tk.Tk()
-root.title("Face Authentication")
-root.geometry("1000x650")
-root.configure(bg="#B3E5FC")  # Màu nền xanh biển nhạt
+        # Tải mô hình dlib
+        self.face_detector = dlib.get_frontal_face_detector()
+        self.landmark_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
 
-# Biến lưu ID sinh viên
-student_id = None
+        # Định nghĩa chỉ số điểm mốc
+        self.nose_tip_index = 33
+        self.left_eye_indices = list(range(36, 42))
+        self.right_eye_indices = list(range(42, 48))
+        self.jaw_indices = list(range(0, 17))
 
-# === NÚT BACK ===
-btn_back = tk.Button(root, text="Back", font=("Arial", 12, "bold"), bg="#4699A6", fg="white",
-                     width=10, height=2, borderwidth=0, command=root.quit)
-btn_back.place(x=30, y=20)
+        # Khởi tạo giao diện
+        self.create_widgets()
 
-# === TIÊU ĐỀ ===
-header_label = tk.Label(root, text="Face Authentication", font=("Arial", 24, "bold"),
-                        bg="#B3E5FC", fg="black")
-header_label.place(relx=0.5, y=40, anchor="center")
+        # Bắt đầu hiển thị video
+        self.show_frame()
 
-# === KHUNG HIỂN THỊ CAMERA ===
-video_frame = tk.Frame(root, width=640, height=400, bg="white", relief="solid", borderwidth=2, highlightbackground="#8A2BE2", highlightthickness=3)
-video_frame.place(x=60, y=100)
+    def create_widgets(self):
+        # Nút quay lại
+        self.btn_back = tk.Button(self.root, text="Back", font=("Arial", 12, "bold"),
+                                  bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
+                                  command=self.close_app)
+        self.btn_back.place(x=30, y=20)
 
-video_label = tk.Label(video_frame, text="Khung hiển thị camera", font=("Arial", 18, "bold"), bg="white")
-video_label.place(relx=0.5, rely=0.5, anchor="center")
+        # Tiêu đề
+        self.header_label = tk.Label(self.root, text="Face Anti-Spoofing", font=("Arial", 24, "bold"),
+                                     bg="#B3E5FC", fg="black")
+        self.header_label.place(relx=0.5, y=40, anchor="center")
 
-# === Ô NHẬP MSSV ===
-entry_label = tk.Label(root, text="Enter student ID:", font=("Arial", 14), bg="#B3E5FC", fg="black")
-entry_label.place(x=750, y=120)
+        # Khung hiển thị camera
+        self.video_frame = tk.Frame(self.root, width=640, height=400, bg="white", relief="solid",
+                                    borderwidth=2, highlightbackground="#8A2BE2", highlightthickness=3)
+        self.video_frame.place(x=60, y=100)
 
-entry_id = tk.Entry(root, font=("Arial", 14), width=20, bd=2)
-entry_id.place(x=750, y=150)
+        self.video_label = tk.Label(self.video_frame, text="Khung hiển thị camera", font=("Arial", 18, "bold"),
+                                    bg="white")
+        self.video_label.place(relx=0.5, rely=0.5, anchor="center")
 
-# === KHUNG HIỂN THỊ THÔNG TIN SINH VIÊN ===
-info_frame = tk.Frame(root, width=200, height=250, bg="white", relief="solid", borderwidth=2)
-info_frame.place(x=750, y=200)
+        # Nút lưu dữ liệu
+        self.btn_save = tk.Button(self.root, text="Save", font=("Arial", 14, "bold"),
+                                  bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
+                                  command=self.capture_and_save_data)
+        self.btn_save.place(x=800, y=280)
 
-info_label = tk.Label(info_frame, text="hiển thị\nthông tin\nsinh viên", font=("Arial", 14, "bold"), bg="white")
-info_label.place(relx=0.5, rely=0.5, anchor="center")
+        # Nhãn trạng thái
+        self.status_label = tk.Label(self.root, text="📷 Hãy nhìn thẳng vào camera",
+                                     font=("Arial", 12), fg="black", bg="#B3E5FC")
+        self.status_label.place(relx=0.5, rely=0.95, anchor="center")
 
-# === NÚT SAVE ===
-btn_save = tk.Button(root, text="Save", font=("Arial", 14, "bold"), bg="#4699A6", fg="white",
-                     width=10, height=2, borderwidth=0)
-btn_save.place(x=800, y=480)
+    def process_frame(self):
+        frames = self.pipeline.wait_for_frames()
+        aligned_frames = self.align.process(frames)
+        color_frame = aligned_frames.get_color_frame()
+        depth_frame = aligned_frames.get_depth_frame()
 
-# === HƯỚNG DẪN QUAY MẶT ===
-status_label = tk.Label(root, text="📷 Hãy quay mặt thẳng về phía camera",
-                        font=("Arial", 12), fg="black", bg="#B3E5FC")
-status_label.place(relx=0.5, rely=0.95, anchor="center")
+        if not color_frame or not depth_frame:
+            return None
 
+        color_image = np.asanyarray(color_frame.get_data())
+        depth_image = np.asanyarray(depth_frame.get_data())
 
-def calculate_face_angle(face):
-    """Tính góc nghiêng của khuôn mặt dựa vào hai mắt"""
-    landmarks = face.kps  # 5 điểm landmark gồm mắt trái, mắt phải, mũi, miệng trái, miệng phải
-    left_eye = landmarks[0]
-    right_eye = landmarks[1]
+        return color_image, depth_image
 
-    delta_x = right_eye[0] - left_eye[0]
-    delta_y = right_eye[1] - left_eye[1]
+    def detect_faces(self, color_image, depth_image):
+        faces = self.face_detector(color_image)
+        results = []
 
-    angle = math.degrees(math.atan2(delta_y, delta_x))  # Chuyển đổi sang độ
+        for face in faces:
+            landmarks = self.landmark_predictor(color_image, face)
+            landmark_points = [(landmarks.part(n).x, landmarks.part(n).y) for n in range(68)]
 
-    return abs(angle)  # Trả về giá trị tuyệt đối của góc
-
-
-def show_frame():
-    """Hiển thị webcam trên giao diện"""
-    ret, frame = cap.read()
-    if ret:
-        faces = app.get(frame)
-
-        if faces:
-            for face in faces:
-                x1, y1, x2, y2 = map(int, face.bbox)
-                cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-
-                # Kiểm tra góc quay của mặt
-                angle = calculate_face_angle(face)
-                if angle > 15:
-                    status_label.config(text=f"⚠️ Mặt đang nghiêng ({angle:.2f}°), hãy quay thẳng!", fg="red")
+            landmark_depths = []
+            for x, y in landmark_points:
+                if 0 <= x < depth_image.shape[1] and 0 <= y < depth_image.shape[0]:
+                    depth = depth_image[y, x]
+                    landmark_depths.append(depth)
                 else:
-                    status_label.config(text="✅ Mặt thẳng, có thể lưu!", fg="green")
+                    landmark_depths.append(0)
 
-        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        frame = cv2.resize(frame, (640, 400))
+            nose_depth = landmark_depths[self.nose_tip_index]
+            mean_left_eye_depth = np.mean([landmark_depths[i] for i in self.left_eye_indices if landmark_depths[i] > 0])
+            mean_right_eye_depth = np.mean([landmark_depths[i] for i in self.right_eye_indices if landmark_depths[i] > 0])
+            mean_jaw_depth = np.mean([landmark_depths[i] for i in self.jaw_indices if landmark_depths[i] > 0])
 
-        # Chuyển đổi thành ảnh Tkinter
-        img = Image.fromarray(frame)
+            face_region_depth = depth_image[face.top():face.bottom(), face.left():face.right()]
+            std_dev = np.std(face_region_depth)
+
+            results.append({
+                'face': face,
+                'landmark_points': np.array(landmark_points),
+                'landmark_depths': np.array(landmark_depths),
+                'nose_depth': nose_depth,
+                'mean_left_eye_depth': mean_left_eye_depth,
+                'mean_right_eye_depth': mean_right_eye_depth,
+                'mean_jaw_depth': mean_jaw_depth,
+                'std_dev': std_dev
+            })
+
+        return results
+
+    def show_frame(self):
+        result = self.process_frame()
+        if result is None:
+            self.video_label.after(10, self.show_frame)
+            return
+
+        color_image, depth_image = result
+        face_results = self.detect_faces(color_image, depth_image)
+
+        for result in face_results:
+            face = result['face']
+            cv2.rectangle(color_image, (face.left(), face.top()), (face.right(), face.bottom()), (0, 255, 0), 2)
+            cv2.putText(color_image, "Face Detected", (face.left(), face.top() - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+            # Vẽ các điểm mốc
+            for x, y in result['landmark_points']:
+                cv2.circle(color_image, (int(x), int(y)), 2, (255, 0, 0), -1)
+
+            self.status_label.config(text="✅ Face detected!", fg="green")
+
+        if not face_results:
+            self.status_label.config(text="❌ No face detected!", fg="red")
+
+        color_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
+        color_image = cv2.resize(color_image, (640, 400))
+
+        img = Image.fromarray(color_image)
         imgtk = ImageTk.PhotoImage(image=img)
-        video_label.imgtk = imgtk
-        video_label.configure(image=imgtk)
+        self.video_label.imgtk = imgtk
+        self.video_label.configure(image=imgtk)
 
-    video_label.after(10, show_frame)
+        self.video_label.after(10, self.show_frame)
 
+    def capture_and_save_data(self):
+        result = self.process_frame()
+        if result is None:
+            messagebox.showerror("❌ Lỗi", "Không thể chụp ảnh từ camera!")
+            return
 
-def capture_and_save_embedding():
-    global student_id
-    student_id = entry_id.get().strip()
+        color_image, depth_image = result
+        face_results = self.detect_faces(color_image, depth_image)
 
-    if not student_id:
-        messagebox.showwarning("⚠️ Lỗi", "Vui lòng nhập MSSV trước khi thu thập!")
-        return
+        if not face_results:
+            self.status_label.config(text="❌ Không phát hiện khuôn mặt!", fg="red")
+            messagebox.showerror("❌ Lỗi", "Không tìm thấy khuôn mặt, hãy thử lại!")
+            return
 
-    ret, frame = cap.read()
-    if not ret:
-        messagebox.showerror("❌ Lỗi", "Không thể chụp ảnh từ camera!")
-        return
+        result = face_results[0]  # Lấy khuôn mặt đầu tiên
 
-    faces = app.get(frame)
+        data_count = len(os.listdir(self.data_dir)) + 1
+        data_path = os.path.join(self.data_dir, f"antispoof_{data_count}.npy")
 
-    if faces:
-        face = faces[0]
+        data_to_save = {
+            'landmark_points': result['landmark_points'],
+            'landmark_depths': result['landmark_depths'],
+            'nose_depth': result['nose_depth'],
+            'mean_left_eye_depth': result['mean_left_eye_depth'],
+            'mean_right_eye_depth': result['mean_right_eye_depth'],
+            'mean_jaw_depth': result['mean_jaw_depth'],
+            'std_dev': result['std_dev']
+        }
 
-        angle = calculate_face_angle(face)
-        if angle <= 15:
-            face_embedding = face.normed_embedding
-            np.save(os.path.join(embedding_dir, f"{student_id}_embedding.npy"), face_embedding)
-            messagebox.showinfo("✅ Thành công", f"Đã lưu embedding cho MSSV {student_id}")
-        else:
-            status_label.config(text=f"⚠️ Mặt đang nghiêng ({angle:.2f}°), hãy thử lại!", fg="red")
-            messagebox.showwarning("⚠️ Lỗi", "Mặt chưa quay thẳng, hãy thử lại!")
-    else:
-        status_label.config(text="❌ Không phát hiện khuôn mặt!", fg="red")
-        messagebox.showerror("❌ Lỗi", "Không tìm thấy khuôn mặt, hãy thử lại!")
+        np.save(data_path, data_to_save)
+        self.status_label.config(text="✅ Đã lưu dữ liệu!", fg="green")
+        messagebox.showinfo("✅ Thành công", "Đã lưu dữ liệu!")
 
+    def close_app(self):
+        self.pipeline.stop()
+        cv2.destroyAllWindows()
+        self.root.quit()
 
-def close_app():
-    """Thoát chương trình"""
-    cap.release()
-    cv2.destroyAllWindows()
-    root.quit()
-
-
-btn_save.config(command=capture_and_save_embedding)
-
-# Hiển thị camera trên giao diện
-show_frame()
-
-# Chạy giao diện Tkinter
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = FaceAntiSpoofingApp(root)
+    root.mainloop()
