@@ -8,54 +8,51 @@ import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
 
+
 class FaceAuthenticationApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Face Authentication")
         self.root.geometry("1000x650")
-        self.root.configure(bg="#B3E5FC")  # Màu nền xanh biển nhạt
+        self.root.configure(bg="#B3E5FC")  # Light sea blue background
 
-        # Khởi tạo thư mục lưu embeddings
+        # Initialize embedding directory
         self.embedding_dir = "../../assets/DataEmbeddings"
         os.makedirs(self.embedding_dir, exist_ok=True)
 
-        # Khởi tạo bộ nhận diện khuôn mặt InsightFace
+        # Initialize InsightFace face analysis
         self.app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
         self.app.prepare(ctx_id=0, det_size=(640, 640))
 
-        # Khởi tạo webcam
+        # Initialize webcam
         self.cap = cv2.VideoCapture(0)
 
-        # Biến lưu ID sinh viên
+        # Variable to store student ID
         self.student_id = None
 
-        # Khởi tạo giao diện
+        # Initialize GUI
         self.create_widgets()
 
         self.show_frame()
 
     def create_widgets(self):
-        # Nút quay lại
         self.btn_back = tk.Button(self.root, text="Back", font=("Arial", 12, "bold"),
                                   bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
                                   command=self.close_app)
         self.btn_back.place(x=30, y=20)
 
-        # Tiêu đề
         self.header_label = tk.Label(self.root, text="Face Authentication", font=("Arial", 24, "bold"),
                                      bg="#B3E5FC", fg="black")
         self.header_label.place(relx=0.5, y=40, anchor="center")
 
-        # Khung hiển thị camera
         self.video_frame = tk.Frame(self.root, width=640, height=400, bg="white", relief="solid",
                                     borderwidth=2, highlightbackground="#8A2BE2", highlightthickness=3)
         self.video_frame.place(x=60, y=100)
 
-        self.video_label = tk.Label(self.video_frame, text="Khung hiển thị camera", font=("Arial", 18, "bold"),
+        self.video_label = tk.Label(self.video_frame, text="Camera display frame", font=("Arial", 18, "bold"),
                                     bg="white")
         self.video_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Ô nhập MSSV
         self.entry_label = tk.Label(self.root, text="Enter student ID:", font=("Arial", 14),
                                     bg="#B3E5FC", fg="black")
         self.entry_label.place(x=750, y=120)
@@ -63,35 +60,60 @@ class FaceAuthenticationApp:
         self.entry_id = tk.Entry(self.root, font=("Arial", 14), width=20, bd=2)
         self.entry_id.place(x=750, y=150)
 
-        # Khung hiển thị thông tin sinh viên
         self.info_frame = tk.Frame(self.root, width=200, height=250, bg="white", relief="solid", borderwidth=2)
         self.info_frame.place(x=750, y=200)
 
-        self.info_label = tk.Label(self.info_frame, text="Thông tin\nsinh viên", font=("Arial", 14, "bold"), bg="white")
+        self.info_label = tk.Label(self.info_frame, text="Student\ninformation", font=("Arial", 14, "bold"), bg="white")
         self.info_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Nút lưu khuôn mặt
         self.btn_save = tk.Button(self.root, text="Save", font=("Arial", 14, "bold"),
                                   bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
                                   command=self.capture_and_save_embedding)
         self.btn_save.place(x=800, y=480)
-
-        # Hướng dẫn quay mặt
-        self.status_label = tk.Label(self.root, text="📷 Hãy quay mặt thẳng về phía camera",
+        self.status_label = tk.Label(self.root, text="📷 Please face the camera straight",
                                      font=("Arial", 12), fg="black", bg="#B3E5FC")
         self.status_label.place(relx=0.5, rely=0.95, anchor="center")
 
-    def calculate_face_angle(self, face):
-        landmarks = face.kps  # 5 điểm landmark gồm mắt trái, mắt phải, mũi, miệng trái, miệng phải
+    def calculate_face_orientation(self, face):
+        """Calculate face orientation (yaw, pitch, roll) using landmarks"""
+        landmarks = face.kps  # 5 landmarks: left eye, right eye, nose, left mouth, right mouth
         left_eye = landmarks[0]
         right_eye = landmarks[1]
+        nose = landmarks[2]
+        left_mouth = landmarks[3]
+        right_mouth = landmarks[4]
 
+        # Roll: Angle between eyes (rotation around z-axis)
         delta_x = right_eye[0] - left_eye[0]
         delta_y = right_eye[1] - left_eye[1]
+        roll = math.degrees(math.atan2(delta_y, delta_x))
 
-        angle = math.degrees(math.atan2(delta_y, delta_x))  # Chuyển đổi sang độ
+        # Yaw: Estimate left/right tilt using nose position relative to eyes
+        eye_midpoint_x = (left_eye[0] + right_eye[0]) / 2
+        yaw = (nose[0] - eye_midpoint_x) / (right_eye[0] - left_eye[0]) * 90  # Normalize and scale
 
-        return abs(angle)  # Trả về giá trị tuyệt đối của góc
+        # Pitch: Estimate up/down tilt using vertical nose position relative to eyes and mouth
+        eye_midpoint_y = (left_eye[1] + right_eye[1]) / 2
+        mouth_midpoint_y = (left_mouth[1] + right_mouth[1]) / 2
+        face_height = mouth_midpoint_y - eye_midpoint_y
+        nose_relative_y = (nose[1] - eye_midpoint_y) / face_height
+        pitch = (nose_relative_y - 0.3) * 100  # Adjust based on typical nose position
+
+        return roll, yaw, pitch
+
+    def classify_orientation(self, roll, yaw, pitch):
+        """Classify face orientation based on roll and yaw"""
+        roll_threshold = 15  # Degrees
+        yaw_threshold = 15  # Degrees
+
+        if abs(roll) <= roll_threshold and abs(yaw) <= yaw_threshold:
+            return "straight", "Đang nhìn thẳng"
+        elif yaw > yaw_threshold:
+            return "right", "Đang nghiêng phải"
+        elif yaw < -yaw_threshold:
+            return "left", "Đang nghiêng trái"
+        else:
+            return None, "Adjust face position"
 
     def show_frame(self):
         ret, frame = self.cap.read()
@@ -103,17 +125,18 @@ class FaceAuthenticationApp:
                     x1, y1, x2, y2 = map(int, face.bbox)
                     cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-                    # Kiểm tra góc quay của mặt
-                    angle = self.calculate_face_angle(face)
-                    if angle > 15:
-                        self.status_label.config(text=f"⚠️ Mặt đang nghiêng ({angle:.2f}°), hãy quay thẳng!", fg="red")
+                    roll, yaw, pitch = self.calculate_face_orientation(face)
+                    orientation, message = self.classify_orientation(roll, yaw, pitch)
+
+                    if orientation:
+                        self.status_label.config(text=f"✅ {message}", fg="green")
                     else:
-                        self.status_label.config(text="✅ Mặt thẳng, có thể lưu!", fg="green")
+                        self.status_label.config(text=f"⚠️ {message}", fg="red")
 
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = cv2.resize(frame, (640, 400))
 
-            # Chuyển đổi thành ảnh Tkinter
+            # Convert to Tkinter image
             img = Image.fromarray(frame)
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_label.imgtk = imgtk
@@ -122,45 +145,61 @@ class FaceAuthenticationApp:
         self.video_label.after(10, self.show_frame)
 
     def capture_and_save_embedding(self):
-        """Chụp ảnh và lưu embedding khuôn mặt vào thư mục theo MSSV"""
+        """Capture and save face embedding based on orientation, avoiding overwrites"""
         self.student_id = self.entry_id.get().strip()
 
         if not self.student_id:
-            messagebox.showwarning("⚠️ Lỗi", "Vui lòng nhập MSSV trước khi thu thập!")
+            messagebox.showwarning("⚠️ Error", "Please enter student ID before capturing!")
             return
 
         ret, frame = self.cap.read()
         if not ret:
-            messagebox.showerror("❌ Lỗi", "Không thể chụp ảnh từ camera!")
+            messagebox.showerror("❌ Error", "Could not capture image from camera!")
             return
 
         faces = self.app.get(frame)
 
         if faces:
             face = faces[0]
+            roll, yaw, pitch = self.calculate_face_orientation(face)
+            orientation, message = self.classify_orientation(roll, yaw, pitch)
 
-            angle = self.calculate_face_angle(face)
-            if angle <= 15:
+            if orientation:
                 student_dir = os.path.join(self.embedding_dir, self.student_id)
                 os.makedirs(student_dir, exist_ok=True)
 
-                embedding_count = len(os.listdir(student_dir)) + 1
-                embedding_path = os.path.join(student_dir, f"{self.student_id}_embedding_{embedding_count}.npy")
+                primary_embedding_path = os.path.join(student_dir, f"{self.student_id}_embedding_{orientation}.npy")
+
+                if os.path.exists(primary_embedding_path):
+                    index = 0
+                    while True:
+                        others_embedding_path = os.path.join(student_dir,
+                                                             f"{self.student_id}_embedding_z[{index}].npy")
+                        if not os.path.exists(others_embedding_path):
+                            break
+                        index += 1
+                    embedding_path = others_embedding_path
+                    display_path = f"{self.student_id}_embedding_z[{index}].npy"
+                else:
+                    embedding_path = primary_embedding_path
+                    display_path = f"{self.student_id}_embedding_{orientation}.npy"
 
                 face_embedding = face.normed_embedding
                 np.save(embedding_path, face_embedding)
-                messagebox.showinfo("✅ Thành công", f"Đã lưu embedding cho MSSV {self.student_id}")
+                messagebox.showinfo("✅ Success", f"Saved embedding as {display_path} (ID: {self.student_id})")
+                self.status_label.config(text=f"✅ Saved {display_path}. Try another orientation.", fg="green")
             else:
-                self.status_label.config(text=f"⚠️ Mặt đang nghiêng ({angle:.2f}°), hãy thử lại!", fg="red")
-                messagebox.showwarning("⚠️ Lỗi", "Mặt chưa quay thẳng, hãy thử lại!")
+                self.status_label.config(text=f"⚠️ {message}. Please adjust face!", fg="red")
+                messagebox.showwarning("⚠️ Error", "Face orientation not suitable. Please adjust and try again!")
         else:
-            self.status_label.config(text="❌ Không phát hiện khuôn mặt!", fg="red")
-            messagebox.showerror("❌ Lỗi", "Không tìm thấy khuôn mặt, hãy thử lại!")
+            self.status_label.config(text="❌ No face detected!", fg="red")
+            messagebox.showerror("❌ Error", "No face detected. Please try again!")
 
     def close_app(self):
         self.cap.release()
         cv2.destroyAllWindows()
         self.root.quit()
+
 
 if __name__ == "__main__":
     root = tk.Tk()
