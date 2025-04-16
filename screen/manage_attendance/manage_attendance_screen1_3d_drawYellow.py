@@ -285,6 +285,10 @@ class attendance:
 
     def export_excel(self):
         import pandas as pd
+        from datetime import datetime
+        import os
+        from tkinter import messagebox
+
         today = datetime.now().strftime("%d/%m")
         attendance_data = []
         for index, item in enumerate(self.tree.get_children(), start=1):
@@ -293,12 +297,9 @@ class attendance:
             student_name = values[1]
             birthday = values[2]
             status = values[6]
-            # Lấy trạng thái Real/Not Real từ dictionary
-            real_status = "Real" if self.student_real_status.get(student_id, False) else "Not Real"
-            attendance_data.append([index, student_id, student_name, birthday, status, real_status])
+            attendance_data.append([index, student_id, student_name, birthday, status])
 
-        # Thêm cột Real/Not Real vào DataFrame
-        df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Birth", today, "Real/Not Real"])
+        df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Birth", today])
         class_folder = self.var_section_class.get()
         output_path = f"{class_folder}/attendance.xlsx"
         try:
@@ -312,8 +313,12 @@ class attendance:
                 df_old = df_old.merge(df_new, on=["STT", "Mã", "Họ và tên", "Birth"], how="left")
             else:
                 df_old = df_new
-            df_old["Số lần vắng"] = df_old.iloc[:, 4:-1].apply(lambda row: (row == "").sum(),
-                                                               axis=1)  # Bỏ cột Real/Not Real
+
+            # Tính số lần vắng: Present = 0, còn lại = 1
+            df_old["Số lần vắng"] = df_old.iloc[:, 4:].apply(
+                lambda row: row.apply(lambda x: 0 if str(x).strip().lower() == "present" else 1).sum(), axis=1
+            )
+
             df_old.to_excel(output_path, index=False)
             messagebox.showinfo("Export Success", f"Attendance updated and exported to {output_path}")
         except Exception as e:
