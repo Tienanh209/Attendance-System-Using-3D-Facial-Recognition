@@ -130,8 +130,8 @@ class attendance:
         self.export_btn.place(x=1100, y=930, width=180, height=40)
 
     def load_id_teacher(self):
-        if os.path.exists('../login/config.json'):
-            with open('../login/config.json', 'r') as f:
+        if os.path.exists('../../screen/login/config.json'):
+            with open('../../screen/login/config.json', 'r') as f:
                 return json.load(f).get('id_teacher', 'Unknown')
         return 'Unknown'
 
@@ -146,7 +146,7 @@ class attendance:
 
     def load_class_subjects(self):
         try:
-            with open("../login/config.json", "r") as config_file:
+            with open("../../screen/login/config.json", "r") as config_file:
                 config_data = json.load(config_file)
                 id_teacher = config_data['id_teacher']
             conn = mysql.connector.connect(host='localhost', user='root', password='',
@@ -400,7 +400,7 @@ class attendance:
     def attendance_2d(self):
         # Load database from subdirectories
         face_db = {}
-        embedding_dir = '../../assets/DataEmbeddings/'
+        embedding_dir = '../DataEmbeddings/'
         for student_dir in os.listdir(embedding_dir):
             student_path = os.path.join(embedding_dir, student_dir)
             if os.path.isdir(student_path):

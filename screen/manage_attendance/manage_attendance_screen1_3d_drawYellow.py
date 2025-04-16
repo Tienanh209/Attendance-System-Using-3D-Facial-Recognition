@@ -495,7 +495,7 @@ class attendance:
                 self.student_real_status[student_id] = is_real
 
                 if is_real:
-                    # Vẽ khung xanh cho xác minh 3D
+                    # Verify 3D
                     cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 3)  # Xanh, dày 3px
                     cv2.putText(color_image, f"Real: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)  # Nhãn rõ ràng
@@ -503,23 +503,23 @@ class attendance:
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
                     cv2.putText(color_image, "Verified 3D", (box[0], box[3] + 50),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                    # Cập nhật Treeview màu xanh
+                    # Update 3D
                     if student_id not in self.recognition_start_time:
                         self.recognition_start_time[student_id] = current_time
                         self.update_attendance(student_id, is_real=True)  # Tô xanh
                 else:
-                    # Vẽ khung vàng cho nhận diện 2D
+                    # Recognition 2D
                     cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 3)  # Vàng, dày 3px
                     cv2.putText(color_image, f"2D Detected: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)  # Nhãn rõ ràng
                     cv2.putText(color_image, f"Depth: {depth_value:.0f}mm", (box[0], box[3] + 25),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-                    # Cập nhật Treeview màu vàng
+                    # Update 2D
                     if student_id not in self.recognition_start_time:
                         self.recognition_start_time[student_id] = current_time
                         self.update_attendance(student_id, is_real=False)  # Tô vàng
 
-                # Cập nhật điểm danh nếu đủ thời gian
+                # Update attendance
                 if student_id in self.recognition_start_time and is_real:
                     if (current_time - self.recognition_start_time[student_id]) >= capture_delay:
                         self.update_attendance(student_id, is_real=True)

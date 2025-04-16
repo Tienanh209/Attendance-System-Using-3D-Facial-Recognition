@@ -53,7 +53,7 @@ class attendance:
         self.start_time = ['7:00', '7:50', '8:50', '9:50', '10:40', '13:30', '14:20', '15:20', '16:10']
         self.end_time = ['7:50', '8:40', '9:40', '10:40', '11:30', '14:20', '15:10', '16:10', '17:00']
         self.id_session = StringVar()
-        self.embeddings_dir = '../../assets/DataEmbeddings/'
+        self.embeddings_dir = '../DataEmbeddings/'
         self.depth_min = 300
         self.depth_max = 1500
         self.similarity_threshold = 0.5
@@ -106,7 +106,7 @@ class attendance:
         self.cbb_section_class = ttk.Combobox(search_frame, textvariable=self.var_section_class, state='readonly')
         self.cbb_section_class.place(x=5, y=15, width=190, height=30)
 
-        img_search = Image.open('../../assets/ImageDesign/search_icon.png')
+        img_search = Image.open('../ImageDesign/search_icon.png')
         img_search = img_search.resize((27, 27), Image.Resampling.LANCZOS)
         self.img_searchtk = ImageTk.PhotoImage(img_search)
         btn_report = Button(search_frame, command=self.search, image=self.img_searchtk, borderwidth=0)
@@ -166,7 +166,7 @@ class attendance:
 
     def load_class_subjects(self):
         try:
-            with open("../login/config.json", "r") as config_file:
+            with open("../../screen/login/config.json", "r") as config_file:
                 config_data = json.load(config_file)  # Use json.load directly
                 id_teacher = config_data['id_teacher']
 
@@ -488,8 +488,8 @@ class attendance:
 
     def load_id_teacher(self):
         # Đọc thông tin từ tệp cấu hình
-        if os.path.exists('../login/config.json'):
-            with open('../login/config.json', 'r') as f:
+        if os.path.exists('../../screen/login/config.json'):
+            with open('../../screen/login/config.json', 'r') as f:
                 config = self.json.load(f)
                 return config.get('id_teacher', 'Unknown')
         return 'Unknown'

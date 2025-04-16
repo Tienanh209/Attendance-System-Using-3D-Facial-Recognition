@@ -6,19 +6,15 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
 
-import dlib
 from PIL import ImageTk, Image
 import mysql.connector
 import os
 import numpy as np
-import pyrealsense2 as rs
 import cv2
 from insightface.app import FaceAnalysis
 from sklearn.metrics.pairwise import cosine_similarity
 from concurrent.futures import ThreadPoolExecutor
 import logging
-import time
-import onnxruntime
 
 from screen.manage_attendance.anti_spoofing import FaceAntiSpoofing
 import warnings
@@ -193,8 +189,6 @@ class attendance:
                 my_cursor.close()
                 conn.close()
 
-    import mysql.connector
-    from mysql.connector import Error
     def add_session(self):
         try:
             conn = mysql.connector.connect(
