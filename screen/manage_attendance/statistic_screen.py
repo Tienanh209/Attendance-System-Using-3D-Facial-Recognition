@@ -59,6 +59,17 @@ class statisticExcel:
             df = pd.read_excel(excel_file)
             df['STT'] = df['STT'].fillna(0).astype(int)
 
+            # Thay thế tất cả giá trị "nan" bằng "Vắng" trong DataFrame (trừ cột STT)
+            columns_to_replace = [col for col in df.columns if col != 'STT']
+            df[columns_to_replace] = df[columns_to_replace].fillna("Vắng")
+
+            # Thay thế các giá trị "Pending", "Present", "Not yet"
+            df[columns_to_replace] = df[columns_to_replace].replace({
+                "Pending": "Đang xác thực",
+                "Present": "Có mặt",
+                "Not yet": "Vắng"
+            })
+
             self.display_table(df)
         except Exception as e:
             messagebox.showerror("Error", f"Failed to load Excel file: {e}")
