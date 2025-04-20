@@ -564,7 +564,7 @@ class attendance:
         executor = ThreadPoolExecutor(max_workers=2)
         iou_threshold = 0.5  # Ngưỡng IoU để xác định hai hộp giới hạn khớp nhau
 
-        # Khởi tạo nguồn video nếu dùng video test
+        # Khởi tạo nguồn video nếu dùng video
         if self.use_video_file:
             cap = cv2.VideoCapture(self.video_file_path)
             if not cap.isOpened():

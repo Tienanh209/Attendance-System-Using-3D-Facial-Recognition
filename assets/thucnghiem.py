@@ -8,27 +8,35 @@ def euclidean_distance(vec1, vec2):
 
 embeddings_path = "DataEmbeddings/"
 
+# Lấy danh sách thư mục con (mỗi thư mục là một người)
 student_dirs = [d for d in os.listdir(embeddings_path) if os.path.isdir(os.path.join(embeddings_path, d))]
 
+# Lưu tất cả embedding của từng người
 all_embeddings = {}
 for student in student_dirs:
     student_path = os.path.join(embeddings_path, student)
     embeddings = []
-    for i in range(1, 6):
-        file_path = os.path.join(student_path, f"{student}_embedding_{i}.npy")
-        if os.path.exists(file_path):
+    # Lấy tất cả file .npy trong thư mục của người này
+    for file_name in os.listdir(student_path):
+        if file_name.endswith(".npy"):
+            file_path = os.path.join(student_path, file_name)
             embedding = np.load(file_path)
             embeddings.append(embedding)
-    all_embeddings[student] = embeddings
+    if embeddings:  # Chỉ thêm nếu có embedding
+        all_embeddings[student] = embeddings
 
+# Tính khoảng cách Euclidean
 same_person_distances = []
 different_person_distances = []
 
+# Tính khoảng cách giữa các embedding của cùng một người
 for student, embeddings in all_embeddings.items():
-    for (i, j) in combinations(range(len(embeddings)), 2):
-        dist = euclidean_distance(embeddings[i], embeddings[j])
-        same_person_distances.append(dist)
+    if len(embeddings) > 1:  # Cần ít nhất 2 embedding để tính khoảng cách
+        for (i, j) in combinations(range(len(embeddings)), 2):
+            dist = euclidean_distance(embeddings[i], embeddings[j])
+            same_person_distances.append(dist)
 
+# Tính khoảng cách giữa các embedding của các người khác nhau
 student_ids = list(all_embeddings.keys())
 for (i, student1) in enumerate(student_ids):
     for student2 in student_ids[i+1:]:
@@ -39,6 +47,7 @@ for (i, student1) in enumerate(student_ids):
                 dist = euclidean_distance(emb1, emb2)
                 different_person_distances.append(dist)
 
+# Vẽ biểu đồ phân bố
 plt.figure(figsize=(10, 6))
 plt.hist(same_person_distances, bins=20, alpha=0.5, label='Cùng người', color='blue')
 plt.hist(different_person_distances, bins=20, alpha=0.5, label='Khác người', color='red')
