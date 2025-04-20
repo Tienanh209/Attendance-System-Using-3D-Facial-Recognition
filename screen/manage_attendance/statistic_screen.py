@@ -1,73 +1,9 @@
-# import tkinter as tk
-# from tkinter import ttk, filedialog
-# import pandas as pd
-#
-# class StudentStatisticApp:
-#     def __init__(self, root):
-#         self.root = root
-#         self.root.title("Student Attendance Statistics")
-#         self.root.geometry("800x600")
-#         self.root.configure(bg="#E3F2FD")
-#
-#         # Title Label
-#         self.title_label = tk.Label(self.root, text="Student Attendance Statistics", font=("Arial", 18, "bold"), bg="#E3F2FD")
-#         self.title_label.pack(pady=10)
-#
-#         # Load File Button
-#         self.load_button = tk.Button(self.root, text="Load Excel File", font=("Arial", 12, "bold"), bg="#64B5F6", fg="white",
-#                                      command=self.load_excel_file)
-#         self.load_button.pack(pady=10)
-#
-#         # Treeview for displaying data
-#         self.tree_frame = tk.Frame(self.root)
-#         self.tree_frame.pack(pady=10, fill=tk.BOTH, expand=True)
-#
-#         self.tree_scroll = ttk.Scrollbar(self.tree_frame)
-#         self.tree_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-#
-#         self.tree = ttk.Treeview(self.tree_frame, yscrollcommand=self.tree_scroll.set)
-#         self.tree.pack(fill=tk.BOTH, expand=True)
-#
-#         self.tree_scroll.config(command=self.tree.yview)
-#
-#     def load_excel_file(self):
-#         file_path = filedialog.askopenfilename(filetypes=[("Excel Files", "*.xlsx;*.xls")])
-#         if not file_path:
-#             return
-#
-#         try:
-#             df = pd.read_excel(file_path)
-#             self.display_data(df)
-#         except Exception as e:
-#             tk.messagebox.showerror("Error", f"Failed to load file: {e}")
-#
-#     def display_data(self, df):
-#         # Clear old data
-#         self.tree.delete(*self.tree.get_children())
-#         self.tree['columns'] = list(df.columns)
-#         self.tree['show'] = 'headings'
-#
-#         for col in df.columns:
-#             self.tree.heading(col, text=col)
-#             self.tree.column(col, width=100, anchor=tk.CENTER)
-#
-#         for row in df.itertuples(index=False):
-#             self.tree.insert('', tk.END, values=row)
-#
-# if __name__ == "__main__":
-#     root = tk.Tk()
-#     app = StudentStatisticApp(root)
-#     root.mainloop()
 import os
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 import pandas as pd
-from pandastable import Table
 
 os.chdir(os.path.dirname(__file__))
-
-
-
 
 class statisticExcel:
     def __init__(self, root):
@@ -93,11 +29,12 @@ class statisticExcel:
         self.frame = tk.Frame(self.root)
         self.frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
 
-        self.table = None
+        # Treeview sẽ được khởi tạo trong display_table
+        self.tree = None
 
     def get_class_folders(self):
         """Lấy danh sách các thư mục lớp học từ thư mục hiện tại."""
-        base_path = os.getcwd()  # Thư mục làm việc hiện tại
+        base_path = os.getcwd()
         class_folders = [f for f in os.listdir(base_path) if os.path.isdir(f) and f.startswith("DI")]
         return class_folders
 
@@ -127,19 +64,50 @@ class statisticExcel:
             messagebox.showerror("Error", f"Failed to load Excel file: {e}")
 
     def display_table(self, df):
-        """Hiển thị dữ liệu lên giao diện Tkinter bằng pandastable."""
-        if self.table:
-            self.table.destroy()
+        """Hiển thị dữ liệu lên giao diện Tkinter bằng ttk.Treeview."""
+        # Xóa bảng cũ nếu có
+        for widget in self.frame.winfo_children():
+            widget.destroy()
 
-        self.table = Table(self.frame, dataframe=df, showtoolbar=True, showstatusbar=True)
-        self.table.show()
-        self.table.redraw()
+        # Tạo Treeview
+        self.tree = ttk.Treeview(self.frame)
+        self.tree.pack(fill=tk.BOTH, expand=True)
 
+        # Định nghĩa cột
+        columns = list(df.columns)
+        self.tree["columns"] = columns
+        self.tree["show"] = "headings"
+
+        # Tùy chỉnh màu sắc và giao diện Treeview
+        style = ttk.Style()
+        # Sử dụng chủ đề 'clam' để hỗ trợ đường viền giữa các hàng
+        style.theme_use('clam')
+        # Tùy chỉnh màu sắc tiêu đề cột
+        style.configure("Treeview.Heading", background="#0288D1", foreground="#FFFFFF", font=("Arial", 10, "bold"))
+        # Tùy chỉnh màu sắc ô dữ liệu và thêm đường viền
+        style.configure("Treeview", rowheight=25, font=("Arial", 10), foreground="#000000", background="#FFFFFF", fieldbackground="#FFFFFF")
+        # Tùy chỉnh đường viền giữa các hàng
+        style.map("Treeview", background=[('!selected', '#FFFFFF'), ('selected', '#D3D3D3')])
+        style.configure("Treeview", bordercolor="#B0BEC5", borderwidth=1)
+
+        # Đặt tiêu đề cột và căn chỉnh
+        for col in columns:
+            self.tree.heading(col, text=col)
+            self.tree.column(col, anchor="center", width=100)
+
+        # Chèn dữ liệu vào Treeview và tùy chỉnh màu sắc hàng
+        for index, row in df.iterrows():
+            self.tree.insert("", tk.END, values=list(row), tags=("row",))
+
+        # Tùy chỉnh màu sắc hàng
+        self.tree.tag_configure("row", background="#FFFFFF", foreground="#000000")
+
+        # Tùy chỉnh màu sắc tiêu đề hàng (các số 1, 2, 3,...)
+        self.tree.tag_configure("tree", background="#0288D1", foreground="#FFFFFF")
+        for i, item in enumerate(self.tree.get_children()):
+            self.tree.item(item, tags=("row", "tree"))
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = statisticExcel(root)
     root.mainloop()
-
-
-
