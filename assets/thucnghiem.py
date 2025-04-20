@@ -6,7 +6,7 @@ import os
 def euclidean_distance(vec1, vec2):
     return np.sqrt(np.sum((vec1 - vec2) ** 2))
 
-embeddings_path = "DataEmbeddings/"
+embeddings_path = "datasets/"
 
 # Lấy danh sách thư mục con (mỗi thư mục là một người)
 student_dirs = [d for d in os.listdir(embeddings_path) if os.path.isdir(os.path.join(embeddings_path, d))]
