@@ -51,6 +51,11 @@ for (i, student1) in enumerate(student_ids):
 plt.figure(figsize=(10, 6))
 plt.hist(same_person_distances, bins=20, alpha=0.5, label='Cùng người', color='blue')
 plt.hist(different_person_distances, bins=20, alpha=0.5, label='Khác người', color='red')
+
+# Đánh dấu đường thẳng tại khoảng cách 1.1
+plt.axvline(x=1.1, color='green', linestyle='--', label='Ngưỡng 1.1')
+plt.text(1.1 + 0.02, plt.ylim()[1] * 0.85, '1.1', color='green', fontsize=14, verticalalignment='top')
+
 plt.title('Phân bố khoảng cách Euclidean giữa các embedding')
 plt.xlabel('Khoảng cách')
 plt.ylabel('Tần suất')
