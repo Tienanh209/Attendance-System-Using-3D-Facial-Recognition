@@ -59,9 +59,12 @@ class statisticExcel:
             df = pd.read_excel(excel_file)
             df['STT'] = df['STT'].fillna(0).astype(int)
 
-            # Thay thế tất cả giá trị "nan" bằng "Vắng" trong DataFrame (trừ cột STT)
+            # Đổi tên cột "Birth" thành "Ngày sinh"
+            df = df.rename(columns={"Birth": "Ngày sinh"})
+
+            # Thay thế tất cả giá trị "nan" bằng "Không dữ liệu" trong DataFrame (trừ cột STT)
             columns_to_replace = [col for col in df.columns if col != 'STT']
-            df[columns_to_replace] = df[columns_to_replace].fillna("Vắng")
+            df[columns_to_replace] = df[columns_to_replace].fillna("Không dữ liệu")
 
             # Thay thế các giá trị "Pending", "Present", "Not yet"
             df[columns_to_replace] = df[columns_to_replace].replace({
