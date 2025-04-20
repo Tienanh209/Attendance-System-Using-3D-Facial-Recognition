@@ -17,7 +17,7 @@ class FaceAuthenticationApp:
         self.root.configure(bg="#B3E5FC")  # Light sea blue background
 
         # Initialize embedding directory
-        self.embedding_dir = "../../assets/DataEmbeddings"
+        self.embedding_dir = "../../assets/datasets"
         os.makedirs(self.embedding_dir, exist_ok=True)
 
         # Initialize InsightFace face analysis
