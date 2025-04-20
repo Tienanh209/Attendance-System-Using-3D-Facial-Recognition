@@ -56,7 +56,7 @@ class Face3DAnalysisApp:
         # Khởi tạo Dlib
         try:
             self.face_detector = dlib.get_frontal_face_detector()
-            model_path = "../manage_attendance/shape_predictor_68_face_landmarks.dat"
+            model_path = "../../manage_attendance/shape_predictor_68_face_landmarks.dat"
             if not os.path.exists(model_path):
                 self.status_label.config(text="Error: Missing shape_predictor_68_face_landmarks.dat")
                 messagebox.showerror("Error",
