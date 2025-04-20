@@ -145,7 +145,7 @@ class FaceAuthenticationApp:
         self.video_label.after(10, self.show_frame)
 
     def capture_and_save_embedding(self):
-        """Capture and save face embedding based on orientation, avoiding overwrites"""
+        """Capture and save face embedding based on orientation with improved file naming"""
         self.student_id = self.entry_id.get().strip()
 
         if not self.student_id:
@@ -164,33 +164,43 @@ class FaceAuthenticationApp:
             roll, yaw, pitch = self.calculate_face_orientation(face)
             orientation, message = self.classify_orientation(roll, yaw, pitch)
 
-            if orientation:
-                student_dir = os.path.join(self.embedding_dir, self.student_id)
-                os.makedirs(student_dir, exist_ok=True)
-
-                primary_embedding_path = os.path.join(student_dir, f"{self.student_id}_embedding_{orientation}.npy")
-
-                if os.path.exists(primary_embedding_path):
-                    index = 0
-                    while True:
-                        others_embedding_path = os.path.join(student_dir,
-                                                             f"{self.student_id}_embedding_z[{index}].npy")
-                        if not os.path.exists(others_embedding_path):
-                            break
-                        index += 1
-                    embedding_path = others_embedding_path
-                    display_path = f"{self.student_id}_embedding_z[{index}].npy"
-                else:
-                    embedding_path = primary_embedding_path
-                    display_path = f"{self.student_id}_embedding_{orientation}.npy"
-
-                face_embedding = face.normed_embedding
-                np.save(embedding_path, face_embedding)
-                messagebox.showinfo("✅ Success", f"Saved embedding as {display_path} (ID: {self.student_id})")
-                self.status_label.config(text=f"✅ Saved {display_path}. Try another orientation.", fg="green")
+            if orientation == "straight":
+                base_name = f"{self.student_id}_embedding_straight"
+            elif orientation == "left":
+                base_name = f"{self.student_id}_embedding_left"
+            elif orientation == "right":
+                base_name = f"{self.student_id}_embedding_right"
             else:
                 self.status_label.config(text=f"⚠️ {message}. Please adjust face!", fg="red")
                 messagebox.showwarning("⚠️ Error", "Face orientation not suitable. Please adjust and try again!")
+                return
+
+            student_dir = os.path.join(self.embedding_dir, self.student_id)
+            os.makedirs(student_dir, exist_ok=True)
+
+            # Tìm tên file tiếp theo nếu file đã tồn tại
+            index = 0
+            while True:
+                if index == 0:
+                    embedding_path = os.path.join(student_dir, f"{base_name}.npy")
+                else:
+                    embedding_path = os.path.join(student_dir, f"{base_name}[{index}].npy")
+
+                if not os.path.exists(embedding_path):
+                    break
+                index += 1
+
+            face_embedding = face.normed_embedding
+            np.save(embedding_path, face_embedding)
+
+            # Tạo tên hiển thị thân thiện
+            if index == 0:
+                display_name = f"{base_name}.npy"
+            else:
+                display_name = f"{base_name}[{index}].npy"
+
+            messagebox.showinfo("✅ Success", f"Saved embedding as {display_name} (ID: {self.student_id})")
+            self.status_label.config(text=f"✅ Saved {display_name}. Try another orientation.", fg="green")
         else:
             self.status_label.config(text="❌ No face detected!", fg="red")
             messagebox.showerror("❌ Error", "No face detected. Please try again!")
