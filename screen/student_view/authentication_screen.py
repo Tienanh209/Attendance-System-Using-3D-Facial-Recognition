@@ -25,6 +25,7 @@ class FaceAuthenticationApp:
         self.app.prepare(ctx_id=0, det_size=(640, 640))
 
         # Initialize webcam
+        
         self.cap = cv2.VideoCapture(0)
 
         # Variable to store student ID
