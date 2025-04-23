@@ -31,7 +31,7 @@ recognizer = FaceRecognizer()
 
 # Paths to train and test directories
 train_dir = "trainData"
-test_dir = ""
+test_dir = "tiltData"
 
 # Step 1: Load known faces from trainData
 known_faces = {}
@@ -81,7 +81,7 @@ print(f"Evaluation complete. Accuracy: {accuracy:.2f} ({correct}/{total})")
 # Step 4: Visualize the results with accuracy percentages
 plt.figure(figsize=(6, 4))
 bars = plt.bar(["Chính Xác", "Không Chính Xác"], [correct, total - correct], color=["green", "red"])
-# plt.title("Biểu Đồ Dự Đoán Khuôn Mặt")
+plt.title("Đánh Giá Dự Đoán Khuôn Mặt Góc Nghiêng")
 plt.ylabel("Số Lượng Mẫu Thử")
 
 # Add accuracy percentages on top of the bars
