@@ -52,7 +52,7 @@ class attendance:
         self.left_eye_indices = list(range(36, 42))
         self.right_eye_indices = list(range(42, 48))
         self.jaw_indices = list(range(0, 17))
-        self.tolerance = 20  # Dung sai cho so sánh chiều sâu (mm)
+        self.tolerance = 15  # Dung sai cho so sánh chiều sâu (mm)
         self.std_dev_threshold = 15  # Ngưỡng độ lệch chuẩn cho vùng khuôn mặt
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -396,7 +396,6 @@ class attendance:
             nose_depth = landmark_depths[self.nose_tip_index]
             mean_left_eye_depth = np.mean([landmark_depths[i] for i in self.left_eye_indices if landmark_depths[i] > 0])
             mean_right_eye_depth = np.mean([landmark_depths[i] for i in self.right_eye_indices if landmark_depths[i] > 0])
-            #mean_jaw_depth = np.mean([landmark_depths[i] for i in self.jaw_indices if landmark_depths[i] > 0])
 
             # Tính độ lệch chuẩn của vùng khuôn mặt
             face_region_depth = depth_image[box[1]:box[3], box[0]:box[2]]

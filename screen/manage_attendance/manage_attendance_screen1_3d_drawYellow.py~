@@ -14,6 +14,8 @@ from concurrent.futures import ThreadPoolExecutor
 import time
 import math
 import warnings
+import dlib
+
 warnings.simplefilter("ignore", category=FutureWarning)
 
 class attendance:
@@ -42,6 +44,16 @@ class attendance:
         # Khởi tạo InsightFace
         self.app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
         self.app.prepare(ctx_id=0, det_size=(640, 640))
+
+        # Khởi tạo FaceAntiSpoofing
+        self.face_detector = dlib.get_frontal_face_detector()
+        self.landmark_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+        self.nose_tip_index = 33
+        self.left_eye_indices = list(range(36, 42))
+        self.right_eye_indices = list(range(42, 48))
+        self.jaw_indices = list(range(0, 17))
+        self.tolerance = 20  # Dung sai cho so sánh chiều sâu (mm)
+        self.std_dev_threshold = 15  # Ngưỡng độ lệch chuẩn cho vùng khuôn mặt
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         img = os.path.abspath(os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'img.png'))
@@ -244,24 +256,39 @@ class attendance:
                 my_cursor.close()
                 conn.close()
 
-    def update_attendance(self, id_student):
+    def update_attendance(self, id_student, is_real=False):
         for item in self.tree.get_children():
             if self.tree.item(item, 'values')[0] == id_student:
                 attendance_time = datetime.now().strftime('%H:%M')
                 current_date = datetime.now().strftime('%Y/%m/%d')
+                status = "Present" if is_real else "Pending"  # Trạng thái Present cho 3D, Pending cho 2D
+                # Cập nhật giá trị Treeview
                 self.tree.item(item, values=(id_student,
-                                            self.tree.item(item, 'values')[1],
-                                            self.tree.item(item, 'values')[2],
-                                            attendance_time,
-                                            current_date,
-                                            self.tree.item(item, 'values')[5],
-                                            "Present"))
-                self.tree.item(item, tags=("highlight",))
-                self.tree.tag_configure("highlight", background="lightgreen")
+                                             self.tree.item(item, 'values')[1],
+                                             self.tree.item(item, 'values')[2],
+                                             attendance_time,
+                                             current_date,
+                                             self.tree.item(item, 'values')[5],
+                                             status))
+                # Xóa tag cũ để tránh xung đột màu
+                self.tree.item(item, tags=())
+                # Tô màu vàng cho 2D, xanh cho 3D
+                if is_real:
+                    self.tree.item(item, tags=("highlight_green",))
+                    self.tree.tag_configure("highlight_green", background="lightgreen", foreground="black")
+                else:
+                    self.tree.item(item, tags=("highlight_yellow",))
+                    self.tree.tag_configure("highlight_yellow", background="yellow", foreground="black")
+                # Buộc Treeview cập nhật giao diện
+                self.tree.update()
                 break
 
     def export_excel(self):
         import pandas as pd
+        from datetime import datetime
+        import os
+        from tkinter import messagebox
+
         today = datetime.now().strftime("%d/%m")
         attendance_data = []
         for index, item in enumerate(self.tree.get_children(), start=1):
@@ -271,6 +298,7 @@ class attendance:
             birthday = values[2]
             status = values[6]
             attendance_data.append([index, student_id, student_name, birthday, status])
+
         df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Birth", today])
         class_folder = self.var_section_class.get()
         output_path = f"{class_folder}/attendance.xlsx"
@@ -285,7 +313,12 @@ class attendance:
                 df_old = df_old.merge(df_new, on=["STT", "Mã", "Họ và tên", "Birth"], how="left")
             else:
                 df_old = df_new
-            df_old["Số lần vắng"] = df_old.iloc[:, 4:].apply(lambda row: (row == "").sum(), axis=1)
+
+            # Tính số lần vắng: Present = 0, còn lại = 1
+            df_old["Số lần vắng"] = df_old.iloc[:, 4:].apply(
+                lambda row: row.apply(lambda x: 0 if str(x).strip().lower() == "present" else 1).sum(), axis=1
+            )
+
             df_old.to_excel(output_path, index=False)
             messagebox.showinfo("Export Success", f"Attendance updated and exported to {output_path}")
         except Exception as e:
@@ -301,13 +334,6 @@ class attendance:
         self.isClickedClose = False
         self.attendance_2d()
 
-    def load_id_teacher(self):
-        if os.path.exists('../login/config.json'):
-            with open('../login/config.json', 'r') as f:
-                config = json.load(f)
-                return config.get('id_teacher', 'Unknown')
-        return 'Unknown'
-
     def calculate_face_angle(self, face):
         landmarks = face.kps
         left_eye = landmarks[0]
@@ -321,27 +347,75 @@ class attendance:
         best_student_id = "Unknown"
         best_dist = float('inf')
 
-        # Hàm phụ để tính khoảng cách cho một embedding
         def compute_distance(db_embedding):
             return np.linalg.norm(face_embedding - db_embedding)
 
-        # Duyệt qua tất cả sinh viên và embedding
         for student_id, embeddings in known_faces.items():
-            # Giả sử embeddings luôn là một danh sách
             with ThreadPoolExecutor() as executor:
                 distances = list(executor.map(compute_distance, embeddings))
-            min_dist = min(distances)  # Tìm khoảng cách nhỏ nhất trong số các embedding của sinh viên này
+            min_dist = min(distances)
             if min_dist < best_dist:
                 best_dist = min_dist
                 best_student_id = student_id
 
-        # Log kết quả nhận diện
         if best_dist < threshold:
             print(f"Recognized {best_student_id} with distance {best_dist:.2f}")
             return best_student_id, best_dist
         else:
             print(f"No match found (best distance {best_dist:.2f} >= threshold {threshold})")
             return "Unknown", None
+
+    def detect_faces_3d(self, color_image, depth_image, faces):
+        results = []
+        for face in faces:
+            # Convert InsightFace bbox to dlib rectangle
+            box = face.bbox.astype(int)
+            dlib_rect = dlib.rectangle(left=box[0], top=box[1], right=box[2], bottom=box[3])
+
+            # Lấy điểm mốc
+            landmarks = self.landmark_predictor(color_image, dlib_rect)
+
+            # Trích xuất tọa độ điểm mốc
+            landmark_points = [(landmarks.part(n).x, landmarks.part(n).y) for n in range(68)]
+
+            # Lấy giá trị chiều sâu cho các điểm mốc
+            landmark_depths = []
+            for x, y in landmark_points:
+                if 0 <= x < depth_image.shape[1] and 0 <= y < depth_image.shape[0]:
+                    depth = depth_image[y, x]
+                    landmark_depths.append(depth)
+                else:
+                    landmark_depths.append(0)
+
+            # Kiểm tra dữ liệu chiều sâu thô
+            valid_depths = [d for d in landmark_depths if d > 0]
+            if len(valid_depths) < 0.5 * len(landmark_depths):
+                print("Dữ liệu chiều sâu không hợp lệ")
+                continue
+
+            nose_depth = landmark_depths[self.nose_tip_index]
+            mean_left_eye_depth = np.mean([landmark_depths[i] for i in self.left_eye_indices if landmark_depths[i] > 0])
+            mean_right_eye_depth = np.mean([landmark_depths[i] for i in self.right_eye_indices if landmark_depths[i] > 0])
+
+            # Tính độ lệch chuẩn của vùng khuôn mặt
+            face_region_depth = depth_image[box[1]:box[3], box[0]:box[2]]
+            std_dev = np.std(face_region_depth)
+
+            # Kiểm tra cấu trúc chiều sâu (mũi gần hơn trung bình mắt)
+            avg_eye_depth = (mean_left_eye_depth + mean_right_eye_depth) / 2 if (mean_left_eye_depth and mean_right_eye_depth) else 0
+            is_nose_closer = nose_depth < avg_eye_depth - self.tolerance
+
+            # Quyết định dựa trên độ lệch chuẩn và cấu trúc
+            is_real = std_dev > self.std_dev_threshold and is_nose_closer
+
+            results.append({
+                'face': face,
+                'is_real': is_real,
+                'nose_depth': nose_depth,
+                'std_dev': std_dev
+            })
+
+        return results
 
     def attendance_2d(self):
         # Load database from subdirectories
@@ -350,22 +424,21 @@ class attendance:
         for student_dir in os.listdir(embedding_dir):
             student_path = os.path.join(embedding_dir, student_dir)
             if os.path.isdir(student_path):
-                student_id = student_dir  # Tên thư mục là student_id
+                student_id = student_dir
                 embeddings = []
                 for file in os.listdir(student_path):
                     if file.endswith('.npy'):
                         embedding_path = os.path.join(student_path, file)
                         embedding = np.load(embedding_path)
                         embeddings.append(embedding)
-                if embeddings:  # Chỉ thêm nếu có embedding
-                    face_db[student_id] = embeddings
+                    if embeddings:
+                        face_db[student_id] = embeddings
 
         if not face_db:
             messagebox.showwarning("Warning", "No embeddings found in DataEmbeddings directory!")
             return
 
-        valid_distance_start = 0
-        capture_delay = 2  # seconds
+        capture_delay = 0.5  # seconds (cho điểm danh, không ảnh hưởng vẽ khung)
         depth_min = 300  # mm
         depth_max = 1500  # mm
         threshold = 1.0
@@ -380,12 +453,16 @@ class attendance:
                 continue
 
             color_image = np.asanyarray(color_frame.get_data())
+            depth_image = np.asanyarray(depth_frame.get_data())
             faces = self.app.get(color_image)
 
             detected_ids = []
+            # Dictionary để lưu trạng thái
+            if not hasattr(self, 'student_real_status'):
+                self.student_real_status = {}  # Lưu trạng thái Real/Not Real
+
             for face in faces:
                 box = face.bbox.astype(int)
-                embedding = face.normed_embedding
                 center_x = (box[0] + box[2]) // 2
                 center_y = (box[1] + box[3]) // 2
                 depth_value = depth_frame.get_distance(center_x, center_y) * 1000  # mm
@@ -393,29 +470,61 @@ class attendance:
 
                 # Kiểm tra khoảng cách và góc mặt
                 if not (depth_min < depth_value < depth_max) or angle > 15:
-                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 2)
-                    cv2.putText(color_image, "Invalid", (box[0], box[1] - 10),
-                               cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                    valid_distance_start = 0
+                    # Vẽ khung đỏ cho không hợp lệ
+                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 3)  # Đỏ, dày 3px
+                    cv2.putText(color_image, "Invalid Face", (box[0], box[1] - 20),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                     continue
 
+                # Nhận diện 2D
+                embedding = face.normed_embedding
                 student_id, dist = self.recognize_face(embedding, face_db, threshold)
-                detected_ids.append(student_id)
-
-                cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 2)
-                cv2.putText(color_image, f"{student_id} ({dist:.2f})" if dist else student_id,
-                           (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-                cv2.putText(color_image, f"Depth: {depth_value:.0f}mm", (box[0], box[3] + 20),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
-
                 current_time = time.time()
-                if student_id != "Unknown":
-                    if student_id in self.recognition_start_time:
-                        if (current_time - self.recognition_start_time[student_id]) >= capture_delay:
-                            self.update_attendance(student_id)
-                            self.recognition_start_time.pop(student_id)
-                    else:
+
+                if student_id == "Unknown":
+                    # Vẽ khung vàng cho Unknown
+                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 3)  # Vàng, dày 3px
+                    cv2.putText(color_image, "Unknown", (box[0], box[1] - 20),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                    continue
+
+                # Xác minh 3D ngay lập tức
+                face_results = self.detect_faces_3d(color_image, depth_image, [face])
+                is_real = face_results[0]['is_real'] if face_results else False
+                self.student_real_status[student_id] = is_real
+
+                if is_real:
+                    # Verify 3D
+                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 3)  # Xanh, dày 3px
+                    cv2.putText(color_image, f"Real: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)  # Nhãn rõ ràng
+                    cv2.putText(color_image, f"Depth: {depth_value:.0f}mm", (box[0], box[3] + 25),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+                    cv2.putText(color_image, "Verified 3D", (box[0], box[3] + 50),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+                    # Update 3D
+                    if student_id not in self.recognition_start_time:
                         self.recognition_start_time[student_id] = current_time
+                        self.update_attendance(student_id, is_real=True)  # Tô xanh
+                else:
+                    # Recognition 2D
+                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 3)  # Vàng, dày 3px
+                    cv2.putText(color_image, f"2D Detected: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)  # Nhãn rõ ràng
+                    cv2.putText(color_image, f"Depth: {depth_value:.0f}mm", (box[0], box[3] + 25),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
+                    # Update 2D
+                    if student_id not in self.recognition_start_time:
+                        self.recognition_start_time[student_id] = current_time
+                        self.update_attendance(student_id, is_real=False)  # Tô vàng
+
+                # Update attendance
+                if student_id in self.recognition_start_time and is_real:
+                    if (current_time - self.recognition_start_time[student_id]) >= capture_delay:
+                        self.update_attendance(student_id, is_real=True)
+                        self.recognition_start_time.pop(student_id, None)
+
+                detected_ids.append(student_id)
 
             if not hasattr(self, 'recognized_students'):
                 self.recognized_students = []

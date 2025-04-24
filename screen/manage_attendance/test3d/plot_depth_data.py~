@@ -5,7 +5,7 @@ from tkinter import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 # Đọc dữ liệu từ file CSV
-df = pd.read_csv("trash/depth_data_20250420_152009.csv")
+df = pd.read_csv("depth_data_20250420_152009.csv")
 
 # Đổi tên cột sang tiếng Việt
 df.columns = ['nose_depth', 'avg_eye_depth', 'face_std_dev', 'nose_eye_diff', 'label']
