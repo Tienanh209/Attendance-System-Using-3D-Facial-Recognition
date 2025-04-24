@@ -1,0 +1,332 @@
+import json
+from time import strftime
+from datetime import datetime
+from tkinter import *
+from tkinter import ttk, messagebox
+from PIL import ImageTk, Image
+import mysql.connector
+import os
+import numpy as np
+import pyrealsense2 as rs
+import cv2
+from insightface.app import FaceAnalysis
+from concurrent.futures import ThreadPoolExecutor
+import time
+import math
+import warnings
+import dlib
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
+from collections import defaultdict
+
+warnings.simplefilter("ignore", category=FutureWarning)
+
+class AttendanceSpoofingTest:
+    def __init__(self, root):
+        self.root = root
+        self.root.geometry("1200x750+0+0")
+        self.root.title("Thống kê Nhận diện Khuôn mặt Thật theo Góc")
+        self.isClickedClose = False
+        self.recognition_results = defaultdict(lambda: {"correct": 0, "total": 0, "frames": 0})
+        self.angle_increments = 10  # Khoảng góc để gom kết quả
+        self.test_duration = 25  # Tổng thời gian test (5 góc x 5 giây)
+        self.frames_per_angle = 10  # Số khung hình mỗi góc
+        self.time_per_angle = 5  # Thời gian mỗi góc (giây)
+        self.test_start_time = None
+        self.test_running = False
+        self.frame_counter = 0  # Đếm khung hình mỗi góc
+        self.current_angle_start_time = None  # Thời gian bắt đầu góc hiện tại
+        self.last_frame_time = None  # Thời gian chụp khung hình trước
+        self.frame_interval = self.time_per_angle / self.frames_per_angle  # Khoảng thời gian giữa các khung (0.5 giây)
+        self.angle_instructions_map = {
+            (0, 0): "Nhìn thẳng",
+            (15, 0): "Nhìn hơi lên trên",
+            (-15, 0): "Nhìn hơi xuống dưới",
+            (0, -15): "Nhìn hơi sang trái",
+            (0, 15): "Nhìn hơi sang phải"
+        }
+        self.angle_list = list(self.angle_instructions_map.keys())
+        self.current_angle_index = 0
+
+        self.label_instruction = Label(root, text="Đưa khuôn mặt thật vào camera và nghiêng đầu từ từ theo hướng dẫn.", font=("arial", 12))
+        self.label_instruction.pack(pady=10)
+
+        self.camera_frame = LabelFrame(root, text="Camera Feed", width=640, height=480)
+        self.camera_frame.pack(padx=10, pady=10, side=LEFT)
+        self.camera_panel = Label(self.camera_frame)
+        self.camera_panel.pack()
+
+        self.controls_frame = Frame(root)
+        self.controls_frame.pack(padx=10, pady=10, side=RIGHT, fill=Y)
+
+        self.btn_start_test = Button(self.controls_frame, text="Bắt đầu Thống kê", command=self.start_recognition_test)
+        self.btn_start_test.pack(pady=10)
+
+        self.btn_show_chart = Button(self.controls_frame, text="Hiển thị Thống kê Góc", command=self.show_recognition_chart, state=DISABLED)
+        self.btn_show_chart.pack(pady=10)
+
+        self.btn_export_json = Button(self.controls_frame, text="Export JSON", command=self.export_to_json, state=DISABLED)
+        self.btn_export_json.pack(pady=10)
+
+        self.label_angle_instruction = Label(self.controls_frame, text="", font=("arial", 10, "italic"))
+        self.label_angle_instruction.pack(pady=5)
+
+        self.text_output = Text(self.controls_frame, height=15, width=50)
+        self.text_output.pack(pady=10)
+
+        # Khởi tạo RealSense và InsightFace
+        self.pipeline = rs.pipeline()
+        self.config = rs.config()
+        self.config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
+        self.config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 30)
+        self.align = rs.align(rs.stream.color)
+        try:
+            self.pipeline.start(self.config)
+        except Exception as e:
+            messagebox.showerror("Camera Error", f"Không thể khởi động camera RealSense: {e}")
+            self.pipeline = None
+
+        self.app = FaceAnalysis(allowed_modules=['detection'])
+        self.app.prepare(ctx_id=-1, det_size=(640, 640))
+
+        # Khởi tạo FaceAntiSpoofing
+        self.face_detector = dlib.get_frontal_face_detector()
+        self.landmark_predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+        self.nose_tip_index = 33
+        self.left_eye_indices = list(range(36, 42))
+        self.right_eye_indices = list(range(42, 48))
+        self.tolerance = 15
+        self.std_dev_threshold = 15
+
+        self.update_camera_feed()
+
+    def calculate_face_angle_spoofing(self, face):
+        landmarks = face.kps
+        left_eye = landmarks[0]  # Mắt trái
+        right_eye = landmarks[1]  # Mắt phải
+        nose = landmarks[2]      # Mũi
+
+        # Tính pitch (lên/xuống)
+        delta_y = nose[1] - (left_eye[1] + right_eye[1]) / 2
+        delta_x = nose[0] - (left_eye[0] + right_eye[0]) / 2
+        pitch = math.degrees(math.atan2(delta_y, 100))  # 100 là độ dài tham chiếu
+
+        # Tính yaw (trái/phải)
+        delta_x_eyes = right_eye[0] - left_eye[0]
+        delta_y_eyes = right_eye[1] - left_eye[1]
+        yaw = math.degrees(math.atan2(delta_y_eyes, delta_x_eyes))
+
+        return pitch, yaw
+
+    def detect_faces_3d_spoofing(self, color_image, depth_image, faces):
+        results = []
+        for face in faces:
+            box = face.bbox.astype(int)
+            dlib_rect = dlib.rectangle(left=box[0], top=box[1], right=box[2], bottom=box[3])
+            landmarks = self.landmark_predictor(color_image, dlib_rect)
+            landmark_points = [(landmarks.part(n).x, landmarks.part(n).y) for n in range(68)]
+            landmark_depths = []
+            for x, y in landmark_points:
+                if 0 <= x < depth_image.shape[1] and 0 <= y < depth_image.shape[0]:
+                    depth = depth_image[y, x]
+                    landmark_depths.append(depth)
+                else:
+                    landmark_depths.append(0)
+
+            valid_depths = [d for d in landmark_depths if d > 0]
+            if len(valid_depths) < 0.5 * len(landmark_depths):
+                continue
+
+            nose_depth = landmark_depths[self.nose_tip_index]
+            left_eye_depths = [landmark_depths[i] for i in self.left_eye_indices if landmark_depths[i] > 0]
+            right_eye_depths = [landmark_depths[i] for i in self.right_eye_indices if landmark_depths[i] > 0]
+            mean_left_eye_depth = np.mean(left_eye_depths) if left_eye_depths else 0
+            mean_right_eye_depth = np.mean(right_eye_depths) if right_eye_depths else 0
+
+            face_region_depth = depth_image[box[1]:box[3], box[0]:box[2]]
+            std_dev = np.std(face_region_depth)
+
+            avg_eye_depth = (mean_left_eye_depth + mean_right_eye_depth) / 2 if (mean_left_eye_depth and mean_right_eye_depth) else 0
+            is_nose_closer = nose_depth < avg_eye_depth - self.tolerance
+
+            is_real = std_dev > self.std_dev_threshold and is_nose_closer
+
+            results.append({'face': face, 'is_real': is_real})
+        return results
+
+    def update_camera_feed(self):
+        if self.pipeline and not self.isClickedClose:
+            try:
+                frames = self.pipeline.wait_for_frames()
+                aligned_frames = self.align.process(frames)
+                color_frame = aligned_frames.get_color_frame()
+                depth_frame = aligned_frames.get_depth_frame()
+
+                if color_frame and depth_frame and self.test_running:
+                    color_image = np.asanyarray(color_frame.get_data())
+                    depth_image = np.asanyarray(depth_frame.get_data())
+                    self.perform_recognition_test(color_image, depth_image)
+
+                if color_frame:
+                    color_image_rgb = cv2.cvtColor(np.asanyarray(color_frame.get_data()), cv2.COLOR_BGR2RGB)
+                    img = Image.fromarray(color_image_rgb)
+                    imgtk = ImageTk.PhotoImage(image=img)
+                    self.camera_panel.imgtk = imgtk
+                    self.camera_panel.config(image=imgtk)
+            except Exception as e:
+                print(f"Error updating camera feed: {e}")
+        self.root.after(30, self.update_camera_feed)
+
+    def start_recognition_test(self):
+        if not self.test_running:
+            self.test_running = True
+            self.recognition_results.clear()
+            self.test_start_time = time.time()
+            self.current_angle_start_time = time.time()
+            self.last_frame_time = time.time()
+            self.frame_counter = 0
+            self.btn_start_test.config(state=DISABLED)
+            self.btn_show_chart.config(state=DISABLED)
+            self.btn_export_json.config(state=DISABLED)
+            self.text_output.delete("1.0", END)
+            self.text_output.insert(END, "Bắt đầu thống kê nhận diện khuôn mặt thật theo góc...\n")
+            self.text_output.insert(END, "Hãy nghiêng đầu từ từ theo hướng dẫn.\n")
+            self.current_angle_index = 0
+            self.update_angle_instruction()
+            self.root.after(int(self.time_per_angle * 1000), self.next_angle_instruction)
+
+    def update_angle_instruction(self):
+        current_angle = self.angle_list[self.current_angle_index]
+        instruction = self.angle_instructions_map[current_angle]
+        self.label_angle_instruction.config(text=instruction)
+
+    def next_angle_instruction(self):
+        if self.test_running:
+            self.current_angle_index += 1
+            self.frame_counter = 0  # Reset frame counter
+            self.current_angle_start_time = time.time()
+            self.last_frame_time = time.time()
+            if self.current_angle_index < len(self.angle_list):
+                self.update_angle_instruction()
+                self.root.after(int(self.time_per_angle * 1000), self.next_angle_instruction)
+            else:
+                self.stop_recognition_test()
+
+    def stop_recognition_test(self):
+        if self.test_running:
+            self.test_running = False
+            self.label_angle_instruction.config(text="")
+            self.btn_start_test.config(state=NORMAL)
+            self.btn_show_chart.config(state=NORMAL)
+            self.btn_export_json.config(state=NORMAL)
+            self.text_output.insert(END, "\nHoàn thành thống kê nhận diện.\n")
+
+    def perform_recognition_test(self, color_image, depth_image):
+        if not self.test_running or self.frame_counter >= self.frames_per_angle:
+            return
+
+        current_time = time.time()
+        if current_time - self.current_angle_start_time > self.time_per_angle:
+            return  # Không xử lý thêm nếu vượt thời gian góc
+
+        # Chỉ chụp khung hình nếu đã đủ khoảng thời gian frame_interval
+        if current_time - self.last_frame_time < self.frame_interval:
+            return
+
+        self.frame_counter += 1
+        self.last_frame_time = current_time
+        faces = self.app.get(color_image)
+
+        if faces:
+            for face in faces:
+                pitch, yaw = self.calculate_face_angle_spoofing(face)
+                results_3d = self.detect_faces_3d_spoofing(color_image, depth_image, [face])
+                if results_3d:
+                    is_real = results_3d[0]['is_real']
+                    pitch_group = round(pitch / self.angle_increments) * self.angle_increments
+                    yaw_group = round(yaw / self.angle_increments) * self.angle_increments
+                    angle_group = (pitch_group, yaw_group)
+
+                    self.recognition_results[angle_group]["total"] += 1
+                    self.recognition_results[angle_group]["frames"] += 1
+                    if is_real:
+                        self.recognition_results[angle_group]["correct"] += 1
+                    self.text_output.insert(END, f"Góc (pitch: {pitch:.2f}, yaw: {yaw:.2f}), Nhận diện: {'Thật' if is_real else 'Giả'}, Khung: {self.frame_counter}\n")
+                else:
+                    self.text_output.insert(END, f"Góc (pitch: {pitch:.2f}, yaw: {yaw:.2f}), Không đủ dữ liệu 3D, Khung: {self.frame_counter}\n")
+        else:
+            self.text_output.insert(END, f"Không phát hiện khuôn mặt, Khung: {self.frame_counter}\n")
+
+    def show_recognition_chart(self):
+        angles = list(self.angle_instructions_map.keys())
+        accuracies = []
+        frame_counts = []
+        angle_labels = []
+
+        for angle_val in angles:
+            correct = self.recognition_results[angle_val]["correct"]
+            total = self.recognition_results[angle_val]["total"]
+            frames = self.recognition_results[angle_val]["frames"]
+            accuracy = (correct / total) * 100 if total > 0 else 0
+            angle_labels.append(self.angle_instructions_map[angle_val])
+            accuracies.append(accuracy)
+            frame_counts.append(frames)
+
+        plt.figure(figsize=(10, 6))
+        bars = plt.bar(angle_labels, accuracies, color='skyblue')
+        plt.xlabel("Góc nhìn khuôn mặt")
+        plt.ylabel("Tỷ lệ nhận diện khuôn mặt thật (%)")
+        plt.title("Thống kê Tỷ lệ Nhận diện Khuôn mặt Thật theo Góc")
+        plt.ylim(0, 100)
+        plt.grid(axis='y', linestyle='--')
+
+        for i, bar in enumerate(bars):
+            yval = bar.get_height()
+            plt.text(bar.get_x() + bar.get_width()/2, yval + 1, f'{yval:.2f}% ({frame_counts[i]} khung)', ha='center', va='bottom')
+
+        plt.tight_layout()
+        plt.show()
+
+        best_accuracy = -1
+        best_angle_label = ""
+        for i, acc in enumerate(accuracies):
+            if acc > best_accuracy:
+                best_accuracy = acc
+                best_angle_label = angle_labels[i]
+
+        self.text_output.insert(END, f"\n--- Thống kê ---\n")
+        self.text_output.insert(END, f"Góc nhận diện tốt nhất: {best_angle_label} ({best_accuracy:.2f}%)\n")
+        self.text_output.insert(END, "Tỷ lệ nhận diện và số khung ở các góc độ:\n")
+        for i, label in enumerate(angle_labels):
+            self.text_output.insert(END, f"- {label}: {accuracies[i]:.2f}% ({frame_counts[i]} khung)\n")
+
+    def export_to_json(self):
+        results = {}
+        for angle, data in self.recognition_results.items():
+            pitch, yaw = angle
+            angle_label = self.angle_instructions_map.get(angle, f"Pitch: {pitch}, Yaw: {yaw}")
+            results[angle_label] = {
+                "correct": data["correct"],
+                "total": data["total"],
+                "frames": data["frames"],
+                "accuracy": (data["correct"] / data["total"] * 100) if data["total"] > 0 else 0
+            }
+
+        timestamp = strftime("%Y%m%d_%H%M%S")
+        filename = f"recognition_results_{timestamp}.json"
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(results, f, ensure_ascii=False, indent=4)
+        messagebox.showinfo("Success", f"Kết quả đã được lưu vào {filename}")
+
+    def is_clicked(self):
+        self.isClickedClose = True
+        if self.pipeline:
+            self.pipeline.stop()
+        cv2.destroyAllWindows()
+
+if __name__ == "__main__":
+    root = Tk()
+    app = AttendanceSpoofingTest(root)
+    root.protocol("WM_DELETE_WINDOW", app.is_clicked)
+    root.mainloop()

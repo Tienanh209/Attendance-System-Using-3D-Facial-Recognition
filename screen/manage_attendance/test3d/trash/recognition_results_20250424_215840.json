@@ -1,0 +1,98 @@
+{
+    "Pitch: 30, Yaw: -10": {
+        "correct": 3,
+        "total": 3,
+        "frames": 3,
+        "accuracy": 100.0
+    },
+    "Pitch: 20, Yaw: 0": {
+        "correct": 2,
+        "total": 2,
+        "frames": 2,
+        "accuracy": 100.0
+    },
+    "Pitch: 10, Yaw: 0": {
+        "correct": 16,
+        "total": 16,
+        "frames": 16,
+        "accuracy": 100.0
+    },
+    "Pitch: 0, Yaw: 10": {
+        "correct": 2,
+        "total": 2,
+        "frames": 2,
+        "accuracy": 100.0
+    },
+    "Pitch: 10, Yaw: 10": {
+        "correct": 7,
+        "total": 7,
+        "frames": 7,
+        "accuracy": 100.0
+    },
+    "Pitch: 40, Yaw: 0": {
+        "correct": 1,
+        "total": 13,
+        "frames": 13,
+        "accuracy": 7.6923076923076925
+    },
+    "Pitch: 50, Yaw: 0": {
+        "correct": 0,
+        "total": 21,
+        "frames": 21,
+        "accuracy": 0.0
+    },
+    "Pitch: 50, Yaw: 10": {
+        "correct": 0,
+        "total": 2,
+        "frames": 2,
+        "accuracy": 0.0
+    },
+    "Pitch: 30, Yaw: 0": {
+        "correct": 8,
+        "total": 31,
+        "frames": 31,
+        "accuracy": 25.806451612903224
+    },
+    "Pitch: 30, Yaw: 10": {
+        "correct": 5,
+        "total": 10,
+        "frames": 10,
+        "accuracy": 50.0
+    },
+    "Pitch: 20, Yaw: 10": {
+        "correct": 8,
+        "total": 8,
+        "frames": 8,
+        "accuracy": 100.0
+    },
+    "Nhìn thẳng": {
+        "correct": 0,
+        "total": 0,
+        "frames": 0,
+        "accuracy": 0
+    },
+    "Nhìn hơi lên trên": {
+        "correct": 0,
+        "total": 0,
+        "frames": 0,
+        "accuracy": 0
+    },
+    "Nhìn hơi xuống dưới": {
+        "correct": 0,
+        "total": 0,
+        "frames": 0,
+        "accuracy": 0
+    },
+    "Nhìn hơi sang trái": {
+        "correct": 0,
+        "total": 0,
+        "frames": 0,
+        "accuracy": 0
+    },
+    "Nhìn hơi sang phải": {
+        "correct": 0,
+        "total": 0,
+        "frames": 0,
+        "accuracy": 0
+    }
+}
