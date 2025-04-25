@@ -146,8 +146,8 @@ output_dir = 'plots'
 os.makedirs(output_dir, exist_ok=True)
 
 # Định nghĩa ngưỡng
-nose_eye_diff_threshold = 6  # mm
-face_std_dev_threshold = 12 # mm
+nose_eye_diff_threshold = 30  # mm
+face_std_dev_threshold = 45 # mm
 
 # 1. Biểu đồ scatter plot cho nose_eye_diff
 plt.figure(figsize=(10, 6))
