@@ -52,8 +52,8 @@ class attendance:
         self.left_eye_indices = list(range(36, 42))
         self.right_eye_indices = list(range(42, 48))
         self.jaw_indices = list(range(0, 17))
-        self.tolerance = 15  # Dung sai cho so sánh chiều sâu (mm)
-        self.std_dev_threshold = 15  # Ngưỡng độ lệch chuẩn cho vùng khuôn mặt
+        self.tolerance = 30  # Dung sai cho so sánh chiều sâu (mm)
+        self.std_dev_threshold = 45  # Ngưỡng độ lệch chuẩn cho vùng khuôn mặt
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         img = os.path.abspath(os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'img.png'))

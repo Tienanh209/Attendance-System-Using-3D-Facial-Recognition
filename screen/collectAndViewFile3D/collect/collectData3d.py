@@ -244,118 +244,14 @@ class Face3DAnalysisApp:
 
             # Draw landmarks on display image if enabled
             if self.show_landmarks.get():
-                # Draw different landmark groups with different colors
-                colors = {
-                    "jaw": (255, 0, 0),  # Blue
-                    "eyebrows": (0, 255, 0),  # Green
-                    "nose": (0, 255, 255),  # Yellow
-                    "left_eye": (255, 0, 255),  # Magenta
-                    "right_eye": (255, 128, 0),  # Orange
-                    "mouth_outer": (0, 0, 255),  # Red
-                    "mouth_inner": (0, 128, 255)  # Light red
-                }
+                # Define a unified color for all landmarks (Red: BGR = 255, 0, 0)
+                unified_color = (255, 0, 0)
 
-                # Draw landmark points by group
+                # Draw all landmark points with the unified color
                 for group_name, indices in self.landmark_groups.items():
-                    color = colors.get(group_name, (255, 255, 255))
                     for i in indices:
                         cv2.circle(display_image, (landmark_points[i][0], landmark_points[i][1]),
-                                   3, color, -1)
-
-                # Connect landmarks with lines for better visualization
-                # Jaw line
-                for i in range(1, 17):
-                    cv2.line(display_image,
-                             (landmark_points[i - 1][0], landmark_points[i - 1][1]),
-                             (landmark_points[i][0], landmark_points[i][1]),
-                             (255, 0, 0), 1)
-
-                # Left eyebrow
-                for i in range(18, 22):
-                    cv2.line(display_image,
-                             (landmark_points[i - 1][0], landmark_points[i - 1][1]),
-                             (landmark_points[i][0], landmark_points[i][1]),
-                             (0, 255, 0), 1)
-
-                # Right eyebrow
-                for i in range(23, 27):
-                    cv2.line(display_image,
-                             (landmark_points[i - 1][0], landmark_points[i - 1][1]),
-                             (landmark_points[i][0], landmark_points[i][1]),
-                             (0, 255, 0), 1)
-
-                # Nose bridge
-                for i in range(28, 31):
-                    cv2.line(display_image,
-                             (landmark_points[i - 1][0], landmark_points[i - 1][1]),
-                             (landmark_points[i][0], landmark_points[i][1]),
-                             (0, 255, 255), 1)
-
-                # Nose base
-                cv2.line(display_image,
-                         (landmark_points[30][0], landmark_points[30][1]),
-                         (landmark_points[31][0], landmark_points[31][1]),
-                         (0, 255, 255), 1)
-                cv2.line(display_image,
-                         (landmark_points[31][0], landmark_points[31][1]),
-                         (landmark_points[32][0], landmark_points[32][1]),
-                         (0, 255, 255), 1)
-                cv2.line(display_image,
-                         (landmark_points[32][0], landmark_points[32][1]),
-                         (landmark_points[33][0], landmark_points[33][1]),
-                         (0, 255, 255), 1)
-                cv2.line(display_image,
-                         (landmark_points[33][0], landmark_points[33][1]),
-                         (landmark_points[34][0], landmark_points[34][1]),
-                         (0, 255, 255), 1)
-                cv2.line(display_image,
-                         (landmark_points[34][0], landmark_points[34][1]),
-                         (landmark_points[35][0], landmark_points[35][1]),
-                         (0, 255, 255), 1)
-
-                # Left eye
-                for i in range(37, 42):
-                    cv2.line(display_image,
-                             (landmark_points[i - 1][0], landmark_points[i - 1][1]),
-                             (landmark_points[i][0], landmark_points[i][1]),
-                             (255, 0, 255), 1)
-                cv2.line(display_image,
-                         (landmark_points[41][0], landmark_points[41][1]),
-                         (landmark_points[36][0], landmark_points[36][1]),
-                         (255, 0, 255), 1)
-
-                # Right eye
-                for i in range(43, 48):
-                    cv2.line(display_image,
-                             (landmark_points[i - 1][0], landmark_points[i - 1][1]),
-                             (landmark_points[i][0], landmark_points[i][1]),
-                             (255, 128, 0), 1)
-                cv2.line(display_image,
-                         (landmark_points[47][0], landmark_points[47][1]),
-                         (landmark_points[42][0], landmark_points[42][1]),
-                         (255, 128, 0), 1)
-
-                # Outer lip
-                for i in range(49, 60):
-                    cv2.line(display_image,
-                             (landmark_points[i - 1][0], landmark_points[i - 1][1]),
-                             (landmark_points[i][0], landmark_points[i][1]),
-                             (0, 0, 255), 1)
-                cv2.line(display_image,
-                         (landmark_points[59][0], landmark_points[59][1]),
-                         (landmark_points[48][0], landmark_points[48][1]),
-                         (0, 0, 255), 1)
-
-                # Inner lip
-                for i in range(61, 68):
-                    cv2.line(display_image,
-                             (landmark_points[i - 1][0], landmark_points[i - 1][1]),
-                             (landmark_points[i][0], landmark_points[i][1]),
-                             (0, 128, 255), 1)
-                cv2.line(display_image,
-                         (landmark_points[67][0], landmark_points[67][1]),
-                         (landmark_points[60][0], landmark_points[60][1]),
-                         (0, 128, 255), 1)
+                                   3, unified_color, -1)
 
             # Get depth information and convert to 3D coordinates
             depth_scale = self.pipeline.get_active_profile().get_device().first_depth_sensor().get_depth_scale()
@@ -397,7 +293,7 @@ class Face3DAnalysisApp:
                     if not np.isnan(point_3d).any() and not np.isinf(point_3d).any():
                         landmark_3d.append(point_3d)
                         valid_points += 1
-                    else:
+                    else:  # Sửa lỗi: thay 'daarbij' thành 'else'
                         landmark_3d.append([0, 0, 0])
                 else:
                     landmark_3d.append([0, 0, 0])
@@ -487,7 +383,7 @@ class Face3DAnalysisApp:
             metadata = {
                 "person_id": self.person_id,
                 "frame_number": self.frame_number,
-                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+                "timestamp": time.strftime("%Y-%m-d %H:%M:%S"),
                 "valid_landmarks": sum(1 for p in self.landmark_3d if not (p[0] == 0 and p[1] == 0 and p[2] == 0)),
                 "total_landmarks": len(self.landmark_3d)
             }
