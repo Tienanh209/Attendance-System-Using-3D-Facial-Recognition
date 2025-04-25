@@ -52,8 +52,8 @@ class attendance:
         self.left_eye_indices = list(range(36, 42))
         self.right_eye_indices = list(range(42, 48))
         self.jaw_indices = list(range(0, 17))
-        self.tolerance = 30  # Dung sai cho so sánh chiều sâu (mm)
-        self.std_dev_threshold = 45  # Ngưỡng độ lệch chuẩn cho vùng khuôn mặt
+        self.tolerance = 10  # Dung sai cho so sánh chiều sâu (mm)
+        self.std_dev_threshold = 40  # Ngưỡng độ lệch chuẩn cho vùng khuôn mặt
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         img = os.path.abspath(os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'img.png'))
@@ -431,8 +431,8 @@ class attendance:
                         embedding_path = os.path.join(student_path, file)
                         embedding = np.load(embedding_path)
                         embeddings.append(embedding)
-                    if embeddings:
-                        face_db[student_id] = embeddings
+                if embeddings:
+                    face_db[student_id] = embeddings
 
         if not face_db:
             messagebox.showwarning("Warning", "No embeddings found in DataEmbeddings directory!")
@@ -442,6 +442,7 @@ class attendance:
         depth_min = 300  # mm
         depth_max = 1500  # mm
         threshold = 1.0
+        prev_time = time.time()  # Thời gian để tính FPS
 
         while not self.isClickedClose:
             frames = self.pipeline.wait_for_frames()
@@ -455,6 +456,15 @@ class attendance:
             color_image = np.asanyarray(color_frame.get_data())
             depth_image = np.asanyarray(depth_frame.get_data())
             faces = self.app.get(color_image)
+
+            # Tính FPS và làm tròn thành số nguyên
+            current_time = time.time()
+            fps = round(1 / (current_time - prev_time)) if current_time != prev_time else 0
+            prev_time = current_time
+
+            # Hiển thị FPS trên khung hình (số nguyên)
+            cv2.putText(color_image, f"FPS: {fps}", (10, 30),
+                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
             detected_ids = []
             # Dictionary để lưu trạng thái
