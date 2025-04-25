@@ -244,8 +244,8 @@ class Face3DAnalysisApp:
 
             # Draw landmarks on display image if enabled
             if self.show_landmarks.get():
-                # Define a unified color for all landmarks (Red: BGR = 255, 0, 0)
-                unified_color = (255, 0, 0)
+                # Define a unified color for all landmarks (Green: BGR = 0, 255, 0)
+                unified_color = (0, 255, 0)
 
                 # Draw all landmark points with the unified color
                 for group_name, indices in self.landmark_groups.items():
@@ -293,7 +293,7 @@ class Face3DAnalysisApp:
                     if not np.isnan(point_3d).any() and not np.isinf(point_3d).any():
                         landmark_3d.append(point_3d)
                         valid_points += 1
-                    else:  # Sửa lỗi: thay 'daarbij' thành 'else'
+                    else:
                         landmark_3d.append([0, 0, 0])
                 else:
                     landmark_3d.append([0, 0, 0])
@@ -383,7 +383,7 @@ class Face3DAnalysisApp:
             metadata = {
                 "person_id": self.person_id,
                 "frame_number": self.frame_number,
-                "timestamp": time.strftime("%Y-%m-d %H:%M:%S"),
+                "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
                 "valid_landmarks": sum(1 for p in self.landmark_3d if not (p[0] == 0 and p[1] == 0 and p[2] == 0)),
                 "total_landmarks": len(self.landmark_3d)
             }
