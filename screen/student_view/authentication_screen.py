@@ -61,23 +61,23 @@ class FaceAuthenticationApp:
         self.entry_id.place(x=750, y=150)
         self.entry_id.bind("<Return>", self.fetch_and_display_student_info)
 
-        # Điều chỉnh vị trí và kích thước khung thông tin để không bị che
-        self.info_frame = tk.Frame(self.root, width=260, height=280, bg="white", relief="solid", borderwidth=2)
-        self.info_frame.place(x=730, y=200)
+        # Tăng chiều rộng khung thông tin để chứa nội dung tốt hơn
+        self.info_frame = tk.Frame(self.root, width=280, height=280, bg="white", relief="solid", borderwidth=2)
+        self.info_frame.place(x=710, y=200)
 
         # Nhãn tiêu đề "Thông Tin Sinh Viên"
         self.info_title_label = tk.Label(self.info_frame, text="Thông Tin Sinh Viên", font=("Arial", 14, "bold"), bg="white")
         self.info_title_label.place(relx=0.5, y=20, anchor="center")
 
-        # Nhãn hiển thị thông tin sinh viên
-        self.info_label = tk.Label(self.info_frame, text="Nhập ID sinh viên\nđể xem thông tin", font=("Arial", 11), bg="white", justify="left", wraplength=240, anchor="w", padx=10)
-        self.info_label.place(x=10, y=50)
+        # Giảm wraplength để văn bản tự động xuống dòng sớm hơn
+        self.info_label = tk.Label(self.info_frame, text="Nhập ID sinh viên\nđể xem thông tin", font=("Arial", 11), bg="white", justify="left", wraplength=220, anchor="w", padx=15)
+        self.info_label.place(x=15, y=50)
 
         # Di chuyển nút Lưu xuống dưới để không che viền của info_frame
         self.btn_save = tk.Button(self.root, text="Lưu", font=("Arial", 14, "bold"),
                                   bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
                                   command=self.capture_and_save_embedding)
-        self.btn_save.place(x=800, y=500)  # Di chuyển xuống y=500
+        self.btn_save.place(x=800, y=500)
 
         self.status_label = tk.Label(self.root, text="📷 Vui lòng nhìn thẳng vào camera",
                                      font=("Arial", 12), fg="black", bg="#B3E5FC")
@@ -97,11 +97,11 @@ class FaceAuthenticationApp:
         student_data = self.fetch_student_data(student_id)
 
         if student_data:
-            # Định dạng thông tin sinh viên với khoảng cách rõ ràng
+            # Định dạng thông tin sinh viên với khoảng cách rõ ràng và đồng đều
             info_text = (
-                f"ID: {student_data['id']}\n\n"
-                f"Tên: {student_data['name']}\n\n"
-                f"Ngày sinh: {student_data['birthday']}\n\n"
+                f"ID: {student_data['id']}\n"
+                f"Tên: {student_data['name']}\n"
+                f"Ngày sinh: {student_data['birthday']}\n"
                 f"Email: {student_data['email']}"
             )
             self.info_label.config(text=info_text)
