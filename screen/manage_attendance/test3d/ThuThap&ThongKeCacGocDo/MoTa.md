@@ -1,1 +1,0 @@
-fiel danhGia la lay nhieu goc, roi xuat ra . readJSon  cung dung duoc 
