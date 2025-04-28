@@ -7,8 +7,8 @@ nose_eye_diff_threshold = 15  # mm
 face_std_dev_threshold = 25  # mm
 
 # Đọc file CSV
-# csv_file = 'test_depth_data.csv'
-csv_file = 'depth_data_20250424_194815.csv'
+csv_file = 'test_depth_data.csv'
+# csv_file = 'depth_data_20250424_194815.csv'
 try:
     df = pd.read_csv(csv_file, delimiter=',', encoding='utf-8')
     print(f"Đã đọc thành công file '{csv_file}'.")

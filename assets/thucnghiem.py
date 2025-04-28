@@ -6,7 +6,7 @@ import os
 def euclidean_distance(vec1, vec2):
     return np.sqrt(np.sum((vec1 - vec2) ** 2))
 
-embeddings_path = "datasets/"
+embeddings_path = "trainData/"
 
 # Lấy danh sách thư mục con (mỗi thư mục là một người)
 student_dirs = [d for d in os.listdir(embeddings_path) if os.path.isdir(os.path.join(embeddings_path, d))]
@@ -36,16 +36,15 @@ for student, embeddings in all_embeddings.items():
             dist = euclidean_distance(embeddings[i], embeddings[j])
             same_person_distances.append(dist)
 
-# Tính khoảng cách giữa các embedding của các người khác nhau
+# Tính khoảng cách giữa các embedding của các người khác nhau, chỉ lấy 1 embedding mỗi người
 student_ids = list(all_embeddings.keys())
 for (i, student1) in enumerate(student_ids):
     for student2 in student_ids[i+1:]:
-        embeddings1 = all_embeddings[student1]
-        embeddings2 = all_embeddings[student2]
-        for emb1 in embeddings1:
-            for emb2 in embeddings2:
-                dist = euclidean_distance(emb1, emb2)
-                different_person_distances.append(dist)
+        # Lấy embedding đầu tiên của mỗi người
+        emb1 = all_embeddings[student1][0]  # Chỉ lấy embedding đầu tiên
+        emb2 = all_embeddings[student2][0]  # Chỉ lấy embedding đầu tiên
+        dist = euclidean_distance(emb1, emb2)
+        different_person_distances.append(dist)
 
 # Vẽ biểu đồ phân bố
 plt.figure(figsize=(10, 6))
