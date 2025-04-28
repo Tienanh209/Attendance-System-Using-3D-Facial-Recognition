@@ -25,7 +25,7 @@ class attendance:
         self.camera_name = 1
         self.root = root
         self.root.geometry("1530x1000+0+0")
-        self.root.title("Attendance")
+        self.root.title("Điểm Danh")
         self.isClickedClose = False
         self.recognition_start_time = {}
         self.var_section_class = StringVar()
@@ -63,7 +63,7 @@ class attendance:
             lbl_bg = Label(self.root, image=self.imgtk, bg='white')
             lbl_bg.place(x=0, y=0)
         else:
-            print("Background image not found:", img)
+            print("Không tìm thấy hình nền:", img)
 
         heading = Label(self.root, text="Hệ thống điểm danh khuôn mặt", font=("yu gothic ui", 15, "bold"),
                        bg="white", fg="#57a1f8", bd=0)
@@ -75,12 +75,12 @@ class attendance:
         self.panel = Label(self.left_frame, borderwidth=2, relief="groove")
         self.panel.place(x=8, y=20, width=800, height=480)
 
-        btn_open = Button(self.left_frame, text="Open", bg="#57a1f8", fg="black", command=self.open_camera)
+        btn_open = Button(self.left_frame, text="Mở", bg="#57a1f8", fg="black", command=self.open_camera)
         btn_open.place(x=100, y=580, width=180, height=50)
-        btn_close = Button(self.left_frame, text="Close", bg="#57a1f8", fg="black", command=self.is_clicked)
+        btn_close = Button(self.left_frame, text="Đóng", bg="#57a1f8", fg="black", command=self.is_clicked)
         btn_close.place(x=500, y=580, width=180, height=50)
 
-        search_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE, text="Find section class",
+        search_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE, text="Tìm lớp học",
                                  font=("times new roman", 12, "bold"))
         search_frame.place(x=10, y=800, width=250, height=80)
         self.cbb_section_class = ttk.Combobox(search_frame, textvariable=self.var_section_class, state='readonly')
@@ -96,26 +96,26 @@ class attendance:
         self.lbl_time_session.place(x=350, y=532)
 
         self.Right_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE,
-                                     text="List of students", font=("times new roman", 12, "bold"))
+                                     text="Danh sách sinh viên", font=("times new roman", 12, "bold"))
         self.Right_frame.place(x=880, y=90, width=630, height=850)
 
         self.tree = ttk.Treeview(self.Right_frame,
-                                columns=("ID", "Name", "Birth", "Time", "Date", "Section", "Status"),
+                                columns=("ID", "Tên", "Ngày Sinh", "Thời Gian", "Ngày", "Lớp", "Trạng Thái"),
                                 show="headings", height=50)
         self.tree.heading("ID", text="ID")
-        self.tree.heading("Name", text="Name")
-        self.tree.heading("Birth", text="Birth")
-        self.tree.heading("Time", text="Time")
-        self.tree.heading("Date", text="Date")
-        self.tree.heading("Section", text="Section")
-        self.tree.heading("Status", text="Status")
+        self.tree.heading("Tên", text="Tên")
+        self.tree.heading("Ngày Sinh", text="Ngày Sinh")
+        self.tree.heading("Thời Gian", text="Thời Gian")
+        self.tree.heading("Ngày", text="Ngày")
+        self.tree.heading("Lớp", text="Lớp")
+        self.tree.heading("Trạng Thái", text="Trạng Thái")
         self.tree.column("ID", width=60, anchor=CENTER)
-        self.tree.column("Name", width=150)
-        self.tree.column("Birth", width=80)
-        self.tree.column("Time", width=40)
-        self.tree.column("Date", width=80)
-        self.tree.column("Section", width=40)
-        self.tree.column("Status", width=50)
+        self.tree.column("Tên", width=150)
+        self.tree.column("Ngày Sinh", width=80)
+        self.tree.column("Thời Gian", width=40)
+        self.tree.column("Ngày", width=80)
+        self.tree.column("Lớp", width=40)
+        self.tree.column("Trạng Thái", width=50)
 
         v_scrollbar = Scrollbar(self.Right_frame, orient=VERTICAL, command=self.tree.yview)
         self.tree.configure(yscrollcommand=v_scrollbar.set)
@@ -125,15 +125,15 @@ class attendance:
         h_scrollbar.pack(side=BOTTOM, fill=X)
         self.tree.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.export_btn = Button(self.root, text="Export to Statistic", command=self.export_excel,
+        self.export_btn = Button(self.root, text="Xuất ra Thống Kê", command=self.export_excel,
                                font=("times new roman", 12), bg="lightblue")
         self.export_btn.place(x=1100, y=930, width=180, height=40)
 
     def load_id_teacher(self):
         if os.path.exists('../login/config.json'):
             with open('../login/config.json', 'r') as f:
-                return json.load(f).get('id_teacher', 'Unknown')
-        return 'Unknown'
+                return json.load(f).get('id_teacher', 'Không xác định')
+        return 'Không xác định'
 
     def get_teacher_name(self, id_teacher):
         conn = mysql.connector.connect(host='localhost', user='root', password='',
@@ -142,7 +142,7 @@ class attendance:
         my_cursor.execute("SELECT name_teacher FROM teacher WHERE id_teacher=%s", (id_teacher,))
         row = my_cursor.fetchone()
         conn.close()
-        return row[0] if row else 'Unknown'
+        return row[0] if row else 'Không xác định'
 
     def load_class_subjects(self):
         try:
@@ -156,7 +156,7 @@ class attendance:
             subjects = my_cursor.fetchall()
             self.cbb_section_class['values'] = [subject[0] for subject in subjects]
         except Exception as e:
-            messagebox.showerror("Error", f"Could not load class subjects: {e}")
+            messagebox.showerror("Lỗi", f"Không thể tải danh sách lớp học: {e}")
         finally:
             if 'conn' in locals() and conn.is_connected():
                 my_cursor.close()
@@ -183,7 +183,7 @@ class attendance:
             my_cursor.execute("SELECT id_session FROM session WHERE id_class_subject = %s AND date = %s "
                             "AND start_time = %s AND end_time = %s", val)
             self.id_session.set(str(my_cursor.fetchone()[0]))
-            messagebox.showinfo("Success", "Added session")
+            messagebox.showinfo("Thành công", "Đã thêm phiên học")
         finally:
             if 'conn' in locals() and conn.is_connected():
                 my_cursor.close()
@@ -191,7 +191,7 @@ class attendance:
 
     def choose_session(self, event):
         selected_item = self.cbb_session.get()
-        self.cbb_from['values'] = ('1', '2', '3', '4', '5') if selected_item == "Morning" else ('6', '7', '8', '9')
+        self.cbb_from['values'] = ('1', '2', '3', '4', '5') if selected_item == "Buổi Sáng" else ('6', '7', '8', '9')
 
     def choose_from(self, event):
         index = int(self.cbb_from.get()) - 1
@@ -222,7 +222,7 @@ class attendance:
             self.tree.delete(*self.tree.get_children())
             for record in myresult:
                 self.tree.insert("", END,
-                                values=(record[0], record[1], record[2], "", "", self.var_section_class.get(), "Not yet"))
+                                values=(record[0], record[1], record[2], "", "", self.var_section_class.get(), "Chưa có"))
             self.detail_subject((self.var_section_class.get(),))
         finally:
             if 'conn' in locals() and conn.is_connected():
@@ -239,17 +239,17 @@ class attendance:
                   "JOIN subject s ON s.id_subject = c.id_subject WHERE c.id_class_subject = %s")
             my_cursor.execute(sql, id_class_subject)
             name_teacher, id_subject, name_subject, credit, group = my_cursor.fetchone()
-            frame_details = LabelFrame(self.root, text="Details of section", bg="white")
+            frame_details = LabelFrame(self.root, text="Chi tiết lớp học", bg="white")
             frame_details.place(x=400, y=800, width=300, height=150)
-            Label(frame_details, text=f"ID Subject: {id_subject}", font=("yu gothic ui", 14),
+            Label(frame_details, text=f"Mã Môn: {id_subject}", font=("yu gothic ui", 14),
                  fg="black", bg="white").place(x=5, y=5)
-            Label(frame_details, text=f"Credit: {credit}", font=("yu gothic ui", 14),
+            Label(frame_details, text=f"Tín chỉ: {credit}", font=("yu gothic ui", 14),
                  fg="black", bg="white").place(x=200, y=5)
             Label(frame_details, text=f"{name_subject}", font=("yu gothic ui", 14),
                  fg="black", bg="white").place(x=5, y=35)
-            Label(frame_details, text=f"Group: {group}", font=("yu gothic ui", 14),
+            Label(frame_details, text=f"Nhóm: {group}", font=("yu gothic ui", 14),
                  fg="black", bg="white").place(x=5, y=65)
-            Label(frame_details, text=f"Lecturer: {name_teacher}", font=("yu gothic ui", 14),
+            Label(frame_details, text=f"Giảng viên: {name_teacher}", font=("yu gothic ui", 14),
                  fg="black", bg="white").place(x=5, y=95)
         finally:
             if 'conn' in locals() and conn.is_connected():
@@ -261,7 +261,7 @@ class attendance:
             if self.tree.item(item, 'values')[0] == id_student:
                 attendance_time = datetime.now().strftime('%H:%M')
                 current_date = datetime.now().strftime('%Y/%m/%d')
-                status = "Present" if is_real else "Pending"  # Trạng thái Present cho 3D, Pending cho 2D
+                status = "Có mặt" if is_real else "Đang chờ"  # Trạng thái Có mặt cho 3D, Đang chờ cho 2D
                 # Cập nhật giá trị Treeview
                 self.tree.item(item, values=(id_student,
                                              self.tree.item(item, 'values')[1],
@@ -299,7 +299,7 @@ class attendance:
             status = values[6]
             attendance_data.append([index, student_id, student_name, birthday, status])
 
-        df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Birth", today])
+        df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Ngày Sinh", today])
         class_folder = self.var_section_class.get()
         output_path = f"{class_folder}/attendance.xlsx"
         try:
@@ -310,19 +310,19 @@ class attendance:
                     df_old = df_old.drop(columns=["Số lần vắng"])
                 if today in df_old.columns:
                     df_old.drop(columns=[today], inplace=True)
-                df_old = df_old.merge(df_new, on=["STT", "Mã", "Họ và tên", "Birth"], how="left")
+                df_old = df_old.merge(df_new, on=["STT", "Mã", "Họ và tên", "Ngày Sinh"], how="left")
             else:
                 df_old = df_new
 
-            # Tính số lần vắng: Present = 0, còn lại = 1
+            # Tính số lần vắng: Có mặt = 0, còn lại = 1
             df_old["Số lần vắng"] = df_old.iloc[:, 4:].apply(
-                lambda row: row.apply(lambda x: 0 if str(x).strip().lower() == "present" else 1).sum(), axis=1
+                lambda row: row.apply(lambda x: 0 if str(x).strip().lower() == "có mặt" else 1).sum(), axis=1
             )
 
             df_old.to_excel(output_path, index=False)
-            messagebox.showinfo("Export Success", f"Attendance updated and exported to {output_path}")
+            messagebox.showinfo("Xuất Thành Công", f"Điểm danh đã được cập nhật và xuất ra {output_path}")
         except Exception as e:
-            messagebox.showerror("Export Error", f"Failed to export: {e}")
+            messagebox.showerror("Lỗi Xuất", f"Không thể xuất: {e}")
 
     def is_clicked(self):
         self.isClickedClose = True
@@ -344,7 +344,7 @@ class attendance:
         return abs(angle)
 
     def recognize_face(self, face_embedding, known_faces, threshold=1.0):
-        best_student_id = "Unknown"
+        best_student_id = "Không xác định"
         best_dist = float('inf')
 
         def compute_distance(db_embedding):
@@ -359,16 +359,16 @@ class attendance:
                 best_student_id = student_id
 
         if best_dist < threshold:
-            print(f"Recognized {best_student_id} with distance {best_dist:.2f}")
+            print(f"Nhận diện {best_student_id} với khoảng cách {best_dist:.2f}")
             return best_student_id, best_dist
         else:
-            print(f"No match found (best distance {best_dist:.2f} >= threshold {threshold})")
-            return "Unknown", None
+            print(f"Không tìm thấy kết quả khớp (khoảng cách tốt nhất {best_dist:.2f} >= ngưỡng {threshold})")
+            return "Không xác định", None
 
     def detect_faces_3d(self, color_image, depth_image, faces):
         results = []
         for face in faces:
-            # Convert InsightFace bbox to dlib rectangle
+            # Chuyển bbox InsightFace sang hình chữ nhật dlib
             box = face.bbox.astype(int)
             dlib_rect = dlib.rectangle(left=box[0], top=box[1], right=box[2], bottom=box[3])
 
@@ -418,9 +418,9 @@ class attendance:
         return results
 
     def attendance_2d(self):
-        # Load database from subdirectories
+        # Tải cơ sở dữ liệu từ các thư mục con
         face_db = {}
-        embedding_dir = '../../assets/DataEmbeddings/'
+        embedding_dir = '../../assets/datasets/'
         for student_dir in os.listdir(embedding_dir):
             student_path = os.path.join(embedding_dir, student_dir)
             if os.path.isdir(student_path):
@@ -435,10 +435,10 @@ class attendance:
                     face_db[student_id] = embeddings
 
         if not face_db:
-            messagebox.showwarning("Warning", "No embeddings found in DataEmbeddings directory!")
+            messagebox.showwarning("Cảnh báo", "Không tìm thấy embedding trong thư mục DataEmbeddings!")
             return
 
-        capture_delay = 0.5  # seconds (cho điểm danh, không ảnh hưởng vẽ khung)
+        capture_delay = 0.5  # giây (cho điểm danh, không ảnh hưởng vẽ khung)
         depth_min = 300  # mm
         depth_max = 1500  # mm
         threshold = 1.0
@@ -469,7 +469,7 @@ class attendance:
             detected_ids = []
             # Dictionary để lưu trạng thái
             if not hasattr(self, 'student_real_status'):
-                self.student_real_status = {}  # Lưu trạng thái Real/Not Real
+                self.student_real_status = {}  # Lưu trạng thái Thực/Không Thực
 
             for face in faces:
                 box = face.bbox.astype(int)
@@ -482,7 +482,7 @@ class attendance:
                 if not (depth_min < depth_value < depth_max) or angle > 15:
                     # Vẽ khung đỏ cho không hợp lệ
                     cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 3)  # Đỏ, dày 3px
-                    cv2.putText(color_image, "Invalid Face", (box[0], box[1] - 20),
+                    cv2.putText(color_image, "Khuôn Mặt Không Hợp Lệ", (box[0], box[1] - 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
                     continue
 
@@ -491,10 +491,10 @@ class attendance:
                 student_id, dist = self.recognize_face(embedding, face_db, threshold)
                 current_time = time.time()
 
-                if student_id == "Unknown":
-                    # Vẽ khung vàng cho Unknown
+                if student_id == "Không xác định":
+                    # Vẽ khung vàng cho Không xác định
                     cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 3)  # Vàng, dày 3px
-                    cv2.putText(color_image, "Unknown", (box[0], box[1] - 20),
+                    cv2.putText(color_image, "Không xác định", (box[0], box[1] - 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
                     continue
 
@@ -504,31 +504,31 @@ class attendance:
                 self.student_real_status[student_id] = is_real
 
                 if is_real:
-                    # Verify 3D
+                    # Xác minh 3D
                     cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 3)  # Xanh, dày 3px
-                    cv2.putText(color_image, f"Real: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
+                    cv2.putText(color_image, f"Thực: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)  # Nhãn rõ ràng
-                    cv2.putText(color_image, f"Depth: {depth_value:.0f}mm", (box[0], box[3] + 25),
+                    cv2.putText(color_image, f"Chiều sâu: {depth_value:.0f}mm", (box[0], box[3] + 25),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-                    cv2.putText(color_image, "Verified 3D", (box[0], box[3] + 50),
+                    cv2.putText(color_image, "Đã xác minh 3D", (box[0], box[3] + 50),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                    # Update 3D
+                    # Cập nhật 3D
                     if student_id not in self.recognition_start_time:
                         self.recognition_start_time[student_id] = current_time
                         self.update_attendance(student_id, is_real=True)  # Tô xanh
                 else:
-                    # Recognition 2D
+                    # Nhận diện 2D
                     cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 3)  # Vàng, dày 3px
-                    cv2.putText(color_image, f"2D Detected: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
+                    cv2.putText(color_image, f"Phát hiện 2D: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)  # Nhãn rõ ràng
-                    cv2.putText(color_image, f"Depth: {depth_value:.0f}mm", (box[0], box[3] + 25),
+                    cv2.putText(color_image, f"Chiều sâu: {depth_value:.0f}mm", (box[0], box[3] + 25),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-                    # Update 2D
+                    # Cập nhật 2D
                     if student_id not in self.recognition_start_time:
                         self.recognition_start_time[student_id] = current_time
                         self.update_attendance(student_id, is_real=False)  # Tô vàng
 
-                # Update attendance
+                # Cập nhật điểm danh
                 if student_id in self.recognition_start_time and is_real:
                     if (current_time - self.recognition_start_time[student_id]) >= capture_delay:
                         self.update_attendance(student_id, is_real=True)
@@ -538,7 +538,7 @@ class attendance:
 
             if not hasattr(self, 'recognized_students'):
                 self.recognized_students = []
-            self.recognized_students.extend([id for id in detected_ids if id != "Unknown"])
+            self.recognized_students.extend([id for id in detected_ids if id != "Không xác định"])
             self.recognized_students = list(set(self.recognized_students))
 
             rgb_frame = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
