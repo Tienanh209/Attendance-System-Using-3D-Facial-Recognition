@@ -50,23 +50,23 @@ class student_view:
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         # Lecturer Name
-        self.lbl_teacher_name = tk.Label(self.left_frame, text="Lecturer: Pham Nguyen Khang", font=('Arial', 14, 'bold'), bg='#e3f2fd')
+        self.lbl_teacher_name = tk.Label(self.left_frame, text="Giáo viên : Pham Nguyen Khang", font=('Arial', 14, 'bold'), bg='#e3f2fd')
         self.lbl_teacher_name.pack(pady=10)
 
         # Search Section
         search_frame = tk.Frame(self.left_frame, bg='#e3f2fd')
         search_frame.pack(padx=10, pady=10, fill=tk.X)
 
-        tk.Label(search_frame, text="Select course:", font=('Arial', 12, 'bold'), bg='#e3f2fd').grid(row=0, column=0, padx=10, sticky='w')
+        tk.Label(search_frame, text="Chọn lớp :", font=('Arial', 12, 'bold'), bg='#e3f2fd').grid(row=0, column=0, padx=10, sticky='w')
         self.var_section_class = tk.StringVar()
         self.section_class_combobox = ttk.Combobox(search_frame, textvariable=self.var_section_class, width=12, font=('Arial', 12))
         self.section_class_combobox.grid(row=0, column=1, padx=10, sticky='w')
 
-        tk.Label(search_frame, text="Find students:", font=('Arial', 12, 'bold'), bg='#e3f2fd').grid(row=1, column=0, padx=10, pady=(10, 0), sticky='w')
+        tk.Label(search_frame, text="Nhập tên :", font=('Arial', 12, 'bold'), bg='#e3f2fd').grid(row=1, column=0, padx=10, pady=(10, 0), sticky='w')
         self.var_student_query = tk.StringVar()
         self.student_query_entry = tk.Entry(search_frame, textvariable=self.var_student_query, width=12, font=('Arial', 12))
         self.student_query_entry.grid(row=1, column=1, padx=10, pady=(10, 0), sticky='w')
-        search_button = tk.Button(search_frame, text="Search", font=('Arial', 12), bg='#bbdefb', command=self.search_by_student)
+        search_button = tk.Button(search_frame, text="Tìm", font=('Arial', 12), bg='#bbdefb', command=self.search_by_student)
         search_button.grid(row=1, column=2, padx=10, pady=(10, 0), sticky='w')
 
         # Student List Table
@@ -83,7 +83,7 @@ class student_view:
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
 
         # Right Frame - Student Information
-        tk.Label(self.right_frame, text='Student Information', font=('Arial', 16, 'bold'), bg='#e3f2fd').place(x=20, y=20)
+        tk.Label(self.right_frame, text='Thông tin sinh viên', font=('Arial', 16, 'bold'), bg='#e3f2fd').place(x=20, y=20)
 
         # Entry Fields
         self.entry_id = tk.Entry(self.right_frame, font=('Arial', 14), width=30)

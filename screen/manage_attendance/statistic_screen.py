@@ -1,6 +1,6 @@
 import os
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+from tkinter import ttk, messagebox
 import pandas as pd
 
 os.chdir(os.path.dirname(__file__))
@@ -17,7 +17,7 @@ class statisticExcel:
         print("Current Working Directory:", os.getcwd())
 
         # Tạo Combobox để chọn lớp
-        tk.Label(self.root, text="Select Class:", font=("Arial", 14, "bold"), bg="#E3F2FD").pack(pady=10)
+        tk.Label(self.root, text="Chọn lớp học :", font=("Arial", 14, "bold"), bg="#E3F2FD").pack(pady=10)
 
         self.class_var = tk.StringVar()
         self.class_combobox = ttk.Combobox(self.root, textvariable=self.class_var, font=("Arial", 12))

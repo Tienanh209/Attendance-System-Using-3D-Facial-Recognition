@@ -12,7 +12,7 @@ from screen.home.home_teacher_screen import HomeScreenTeacher
 class LoginWindow:
     def __init__(self, root):
         self.root = root
-        self.root.title('Login')
+        self.root.title('Đăng nhập')
         self.root.geometry('925x600+300+200')
         self.root.configure(bg='#fff')
         self.root.resizable(False, False)
@@ -31,14 +31,14 @@ class LoginWindow:
         self.ent_user = Entry(self.root, textvariable=self.var_username, width=15, fg='black', border=0, bg='white',
                               font=('Microsoft YaHei UI Light', 20))
         self.ent_user.place(x=444, y=279)
-        self.ent_user.insert(0, 'Username')
+        self.ent_user.insert(0, 'Tài khoản')
 
         self.ent_code = Entry(self.root, textvariable=self.var_password, width=15, fg='black', border=0, bg='white',
                               font=('Microsoft YaHei UI Light', 20), show="*")
         self.ent_code.place(x=444, y=353)
-        self.ent_code.insert(0, 'Password')
+        self.ent_code.insert(0, 'Mật khẩu')
 
-        btn_login = Button(self.root, width=15, pady=7, text='Log in', bg='#57a1f8', border=0, command=self.login)
+        btn_login = Button(self.root, width=15, pady=7, text='Đăng nhập', bg='#57a1f8', border=0, command=self.login)
         btn_login.place(x=679, y=498)
 
         self.ent_user.bind("<FocusIn>", self.clear_username)

@@ -17,7 +17,7 @@ class HomeScreenStudent:
         self.student_name = self.get_student_name(self.student_id)
 
         self.root.geometry('925x600')
-        self.root.title('Facial Recognition Attendance System')
+        self.root.title('Hệ thống điểm danh nhận dạng khuôn mặt 3D')
 
         today = strftime('%d-%m-%Y')
 
@@ -47,7 +47,7 @@ class HomeScreenStudent:
         self.update_date(lbl_date)
 
         #=== logout
-        btn_logout = Button(self.root, text="Log out", command=self.logout, font=("yu gothic ui", 20, "bold"), bg="white", fg="#57a1f8", borderwidth=0)
+        btn_logout = Button(self.root, text="Thoát", command=self.logout, font=("yu gothic ui", 20, "bold"), bg="white", fg="#57a1f8", borderwidth=0)
         btn_logout.place(x=817, y=92, width=90, height=23)
 
         #======= body
@@ -61,7 +61,7 @@ class HomeScreenStudent:
         img_student = img_student.resize((150, 140), Image.Resampling.LANCZOS)
 
         self.img_studenttk = ImageTk.PhotoImage(img_student)
-        btn_student = Button(self.root, text="Student", font=("yu gothic ui", 14, "bold"), command=lambda: self.student_view(self.root),
+        btn_student = Button(self.root, text="Danh sách sinh viên", font=("yu gothic ui", 14, "bold"), command=lambda: self.student_view(self.root),
                              image=self.img_studenttk, activebackground="white", bg="white", borderwidth=0,
                              compound="top")
         btn_student.place(x=73, y=255, width=194, height=194)
@@ -78,7 +78,7 @@ class HomeScreenStudent:
         img_authentication = img_authentication.resize((140, 140), Image.Resampling.LANCZOS)
 
         self.img_authenticationtk = ImageTk.PhotoImage(img_authentication)
-        btn_authentication = Button(self.root, text="Authentication", font=("yu gothic ui", 14, "bold"), command=self.authentication_view,
+        btn_authentication = Button(self.root, text="Thu thập", font=("yu gothic ui", 14, "bold"), command=self.authentication_view,
                                image=self.img_authenticationtk, activebackground="white", bg="white", borderwidth=0,
                                compound="top")
         btn_authentication.place(x=361, y=255, width=194, height=194)
@@ -95,7 +95,7 @@ class HomeScreenStudent:
         img_report = img_report.resize((140, 140), Image.Resampling.LANCZOS)
 
         self.img_reporttk = ImageTk.PhotoImage(img_report)
-        btn_report = Button(self.root, text="Statistics", font=("yu gothic ui", 14, "bold"), command="",
+        btn_report = Button(self.root, text="Thống kê", font=("yu gothic ui", 14, "bold"), command="",
                             image=self.img_reporttk, activebackground="white", bg="white", borderwidth=0,
                             compound="top")
         btn_report.place(x=649, y=255, width=194, height=194)
