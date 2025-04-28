@@ -4,7 +4,6 @@ import seaborn as sns
 import os
 
 # Thiết lập kiểu dáng biểu đồ
-plt.style.use('seaborn-v0_8-whitegrid')
 sns.set_context("talk")
 colors = {'real': 'green', 'spoof': 'red'}
 
@@ -39,8 +38,8 @@ face_std_dev_threshold = 25  # mm
 
 # 1. Biểu đồ phân bố (histogram) cho nose_eye_diff
 plt.figure(figsize=(10, 6))
-plt.hist(real_data['nose_eye_diff'], bins=20, alpha=0.5, label='Real', color='blue')
-plt.hist(spoof_data['nose_eye_diff'], bins=20, alpha=0.5, label='Spoof', color='red')
+plt.hist(real_data['nose_eye_diff'], bins=20, alpha=0.5, label='Mặt thật', color='blue')
+plt.hist(spoof_data['nose_eye_diff'], bins=20, alpha=0.5, label='Giả mạo', color='red')
 
 plt.axvline(x=nose_eye_diff_threshold, color='green', linestyle='--', label=f'Ngưỡng {nose_eye_diff_threshold} mm')
 plt.text(nose_eye_diff_threshold + 0.5, plt.ylim()[1] * 0.85, f'{nose_eye_diff_threshold}', color='green', fontsize=14, verticalalignment='top')
@@ -55,8 +54,8 @@ plt.show()
 
 # 2. Biểu đồ phân bố (histogram) cho face_std_dev
 plt.figure(figsize=(10, 6))
-plt.hist(real_data['face_std_dev'], bins=20, alpha=0.5, label='Real', color='blue')
-plt.hist(spoof_data['face_std_dev'], bins=20, alpha=0.5, label='Spoof', color='red')
+plt.hist(real_data['face_std_dev'], bins=20, alpha=0.5, label='Mặt thật', color='blue')
+plt.hist(spoof_data['face_std_dev'], bins=20, alpha=0.5, label='Giả mạo', color='red')
 plt.axvline(x=face_std_dev_threshold, color='green', linestyle='--', label=f'Ngưỡng {face_std_dev_threshold} mm')
 plt.text(face_std_dev_threshold + 0.5, plt.ylim()[1] * 0.85, f'{face_std_dev_threshold}', color='green', fontsize=14, verticalalignment='top')
 plt.title('Biểu đồ phân bố độ lệch chuẩn vùng mặt')
