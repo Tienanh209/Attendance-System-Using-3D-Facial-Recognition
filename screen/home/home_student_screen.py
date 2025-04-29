@@ -4,6 +4,7 @@ from tkinter import *
 from PIL import ImageTk, Image
 from screen.student_view.student_view_screen import student_view
 from screen.student_view.authentication_screen import FaceAuthenticationApp
+from screen.manage_attendance.statistic_screen import statisticExcel
 import os
 import json
 import mysql.connector
@@ -95,7 +96,7 @@ class HomeScreenStudent:
         img_report = img_report.resize((140, 140), Image.Resampling.LANCZOS)
 
         self.img_reporttk = ImageTk.PhotoImage(img_report)
-        btn_report = Button(self.root, text="Thống kê", font=("yu gothic ui", 14, "bold"), command="",
+        btn_report = Button(self.root, text="Thống kê", font=("yu gothic ui", 14, "bold"), command=self.statisticExcel,
                             image=self.img_reporttk, activebackground="white", bg="white", borderwidth=0,
                             compound="top")
         btn_report.place(x=649, y=255, width=194, height=194)
@@ -111,13 +112,13 @@ class HomeScreenStudent:
 
     def student_view(self, root):
         self.new_window = Toplevel(root)
-        self.app = Student_View(self.new_window)
+        self.app = student_view(self.new_window)
     def authentication_view(self):
         self.new_window = Toplevel(self.root)
         self.app = FaceAuthenticationApp(self.new_window)
-    def traindata(self):
+    def statisticExcel(self):
         self.new_window = Toplevel(self.root)
-        self.app = traindata(self.new_window)
+        self.app = statisticExcel(self.new_window)
 
     def load_student_id(self):
         config_file = "../login/config.json"
