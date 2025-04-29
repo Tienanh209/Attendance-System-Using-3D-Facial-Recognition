@@ -74,7 +74,7 @@ class student_view:
         self.entry_email = tk.Entry(self.right_frame, font=('Arial', 14), width=30)
 
         # Nhãn và Vị Trí
-        fields = [('ID', self.entry_id), ('Tên', self.entry_name), ('Ngày Sinh', self.entry_birthday),
+        fields = [('ID', self.entry_id), ('Tên', self.entry_name), ('Sinh', self.entry_birthday),
                   ('Email', self.entry_email)]
         y_offset = 60
         for field, entry in fields:
