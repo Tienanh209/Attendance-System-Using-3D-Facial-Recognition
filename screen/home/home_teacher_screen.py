@@ -1,11 +1,9 @@
-from time import strftime
 from datetime import datetime
 from tkinter import *
 from PIL import ImageTk, Image
 from screen.student_view.student_view_screen import student_view
 from screen.manage_attendance.manage_attendance_screen1_3d_drawYellow import attendance
 from screen.manage_attendance.statistic_screen import statisticExcel
-from screen.train_model.train_model_from_images_screen import traindata
 import os
 import json
 import mysql.connector
@@ -101,9 +99,7 @@ class HomeScreenTeacher:
         self.new_window = Toplevel(self.root)
         self.app = attendance(self.new_window)
 
-    def traindata(self):
-        self.new_window = Toplevel(self.root)
-        self.app = traindata(self.new_window)
+
 
     def load_teacher_id(self):
         config_file = "../login/config.json"
