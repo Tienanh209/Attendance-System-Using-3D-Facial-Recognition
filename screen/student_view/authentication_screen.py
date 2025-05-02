@@ -25,7 +25,7 @@ class FaceAuthenticationApp:
         self.app.prepare(ctx_id=0, det_size=(640, 640))
 
         # Khởi tạo webcam
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
 
         # Biến lưu ID sinh viên
         self.student_id = None
@@ -35,11 +35,18 @@ class FaceAuthenticationApp:
 
         self.show_frame()
 
+    def close_current_window(self):
+        """Đóng cửa sổ hiện tại mà không thoát toàn bộ ứng dụng"""
+        self.cap.release()  # Giải phóng webcam
+        self.root.destroy()  # Đóng cửa sổ hiện tại
+
     def create_widgets(self):
         self.btn_back = tk.Button(self.root, text="Quay lại", font=("Arial", 12, "bold"),
                                   bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
-                                  command=self.close_app)
+                                  command=self.close_current_window)
         self.btn_back.place(x=30, y=20)
+
+
 
         self.header_label = tk.Label(self.root, text="Xác Thực Khuôn Mặt", font=("Arial", 24, "bold"),
                                      bg="#B3E5FC", fg="black")
@@ -266,9 +273,8 @@ class FaceAuthenticationApp:
             messagebox.showerror("❌ Lỗi", "Không phát hiện khuôn mặt. Vui lòng thử lại!")
 
     def close_app(self):
-        self.cap.release()
-        cv2.destroyAllWindows()
-        self.root.quit()
+        exit()
+
 
 
 if __name__ == "__main__":

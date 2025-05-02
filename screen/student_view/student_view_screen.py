@@ -17,6 +17,7 @@ class student_view:
         self.root.configure(bg='#e3f2fd')
         self.root.resizable(False, False)
 
+
         # Khung Bên Trái
         self.left_frame = tk.Frame(self.root, width=500, bg='#e3f2fd')
         self.left_frame.pack(side=tk.LEFT, fill=tk.Y)
@@ -82,6 +83,11 @@ class student_view:
             entry.place(x=100, y=y_offset)
             y_offset += 40
 
+        self.btn_back = tk.Button(self.root, text="Quay lại", font=("Arial", 10, "bold"),
+                                  bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
+                                  command=self.close_current_window)
+        self.btn_back.place(x=5, y=5)
+
     def load_teacher_id(self):
         # Đọc teacher_id từ tệp cấu hình
         if os.path.exists('../login/config.json'):
@@ -89,6 +95,9 @@ class student_view:
                 config = json.load(f)
                 return config.get('teacher_id', 'Không xác định')
         return 'Không xác định'
+    def close_current_window(self):
+        """Đóng cửa sổ hiện tại mà không thoát toàn bộ ứng dụng"""
+        self.root.destroy()  # Đóng cửa sổ hiện tại
 
     def get_teacher_name(self):
         conn = mysql.connector.connect(host='localhost', user='root', password='', database='face_recognition_sys', port='3306')

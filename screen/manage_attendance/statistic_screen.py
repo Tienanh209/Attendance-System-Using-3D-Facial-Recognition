@@ -12,6 +12,13 @@ class statisticExcel:
         self.root.geometry("900x600")
         self.root.configure(bg="#E3F2FD")
 
+
+
+
+        self.btn_back = tk.Button(self.root, text="Quay lại", font=("Arial", 12, "bold"),
+                                   bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
+                                   command=self.close_current_window)
+        self.btn_back.place(x=30, y=20)
         # Lớp học
         self.class_folders = self.get_class_folders()
         print("Current Working Directory:", os.getcwd())
@@ -32,6 +39,9 @@ class statisticExcel:
         # Treeview sẽ được khởi tạo trong display_table
         self.tree = None
 
+    def close_current_window(self):
+        """Đóng cửa sổ hiện tại mà không thoát toàn bộ ứng dụng"""
+        self.root.destroy()  # Đóng cửa sổ hiện tại
     def get_class_folders(self):
         """Lấy danh sách các thư mục lớp học từ thư mục hiện tại."""
         base_path = os.getcwd()

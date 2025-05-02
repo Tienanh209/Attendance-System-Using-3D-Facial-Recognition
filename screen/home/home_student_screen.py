@@ -36,13 +36,13 @@ class HomeScreenStudent:
                          fg="#57a1f8", bd=0)
         lbl_name.place(x=110, y=137)
 
-        #=== timeline
-        lbl_time = Label(self.root, bg="white", text="", font=("yu gothic ui", 20, "bold"),
+        # === timeline
+        lbl_time = Label(self.root, bg="#e3f2fd", text="", font=("yu gothic ui", 20, "bold"),
                          fg="#57a1f8", bd=0)
-        lbl_time.place(x=154, y=502)
+        lbl_time.place(x=154, y=490)
         self.update_time(lbl_time)
 
-        lbl_date = Label(self.root, bg="white", text="", font=("yu gothic ui", 20, "bold"),
+        lbl_date = Label(self.root, bg="#e3f2fd", text="", font=("yu gothic ui", 20, "bold"),
                          fg="#57a1f8", bd=0)
         lbl_date.place(x=138, y=532)
         self.update_date(lbl_date)
