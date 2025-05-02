@@ -400,7 +400,7 @@ class attendance:
     def attendance_2d(self):
         # Load database from subdirectories
         face_db = {}
-        embedding_dir = '../DataEmbeddings/'
+        embedding_dir = 'DataEmbeddings/'
         for student_dir in os.listdir(embedding_dir):
             student_path = os.path.join(embedding_dir, student_dir)
             if os.path.isdir(student_path):
