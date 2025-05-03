@@ -5,81 +5,91 @@ from datetime import *
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+
+import dlib
 from PIL import ImageTk, Image
 import mysql.connector
-import cv2
-import numpy as np
-from insightface.app import FaceAnalysis
 import os
+import numpy as np
+import pyrealsense2 as rs
+import cv2
+from insightface.app import FaceAnalysis
+from sklearn.metrics.pairwise import cosine_similarity
+from concurrent.futures import ThreadPoolExecutor
+import logging
+import time
+import onnxruntime
+
+from screen.manage_attendance_screen1.anti_spoofing import FaceAntiSpoofing
+
+
+def calculate_iou(box1, box2):
+    # box1 và box2 có định dạng [x1, y1, x2, y2]
+    x1 = max(box1[0], box2[0])
+    y1 = max(box1[1], box2[1])
+    x2 = min(box1[2], box2[2])
+    y2 = min(box1[3], box2[3])
+
+    intersection = max(0, x2 - x1) * max(0, y2 - y1)
+    area1 = (box1[2] - box1[0]) * (box1[3] - box1[1])
+    area2 = (box2[2] - box2[0]) * (box2[3] - box2[1])
+    union = area1 + area2 - intersection
+
+    return intersection / union if union > 0 else 0
 
 
 class attendance:
     def __init__(self, root):
         # Đọc thông tin từ config.json
-        self.teacher_id = self.load_teacher_id()
-        self.teacher_name = self.get_teacher_name(self.teacher_id)
+        self.id_teacher = self.load_id_teacher()
+        self.teacher_name = self.get_teacher_name(self.id_teacher)
         self.camera_name = 1
         self.root = root
-        self.root.geometry("1530x790+0+0")
+        self.root.geometry("1530x1000+0+0")
         self.root.title("Attendance")
-        self.isClicked = False
+        self.isClickedClose = False
         self.recognition_start_time = {}
         self.var_section_class = StringVar()
         self.start_time = ['7:00', '7:50', '8:50', '9:50', '10:40', '13:30', '14:20', '15:20', '16:10']
-        self.end_time =['7:50', '8:40', '9:40', '10:40', '11:30', '14:20', '15:10', '16:10', '17:00']
+        self.end_time = ['7:50', '8:40', '9:40', '10:40', '11:30', '14:20', '15:10', '16:10', '17:00']
         self.id_session = StringVar()
-
-        # ======= background
-        # img = Image.open('../../assets/ImageDesign/img.png')
-        #
-        #
-        # img = img.resize((1530, 790))
-
+        self.embeddings_dir = 'DataEmbeddings/'
+        self.depth_min = 300
+        self.depth_max = 1500
+        self.similarity_threshold = 0.5
+        self.frame_width = 640
+        self.frame_height = 480
+        self.face_anti_spoofing = FaceAntiSpoofing()
+        self.enable_anti_spoofing = True
+        self.use_video_file = True  # True: dùng video, False: dùng camera
+        self.video_file_path = r"C:\Users\Legion 5 Pro 2023\Documents\GitHub\nckh_070225\testvideo\testvideo\color.avi"  # Đường dẫn tuyệt đối
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        img = os.path.join(BASE_DIR,'..', '..', 'assets', 'ImageDesign', 'img.png')
-        img = os.path.abspath(img)  # Chuẩn hóa thành đường dẫn tuyệt đối
+        img = os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'img.png')
+        img = os.path.abspath(img)
 
         if not os.path.exists(img):
             print("File không tồn tại:", img)
 
         img = Image.open(img)
-        img = img.resize((1530, 790))
+        img = img.resize((1530, 1000))
 
         self.imgtk = ImageTk.PhotoImage(img)
 
-        lbl_bg = Label(self.root, image=self.imgtk, bg='white', width=1530, height=790)
+        lbl_bg = Label(self.root, image=self.imgtk, bg='white', width=1530, height=1000)
         lbl_bg.place(x=0, y=0)
 
-        heading = Label(self.root, text="Hệ thống điểm danh khuôn mặt", font=("yu gothic ui", 20, "bold"), bg="white",
-                           fg="#57a1f8", bd=0, relief=FLAT)
-        heading.place(x=400, y=20, width=650, height=40)
+        # Chỉnh sửa tiêu đề "Hệ thống điểm danh khuôn mặt"
+        heading = Label(self.root, text="Hệ thống điểm danh khuôn mặt", font=("yu gothic ui", 15, "bold"), bg="white",
+                        fg="#57a1f8", bd=0, relief=FLAT)
+        heading.place(x=400, y=30, width=650, height=30)  # Đẩy tiêu đề lên một chút để tạo không gian
 
         # LEFT FRAME
         self.left_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE, text="Camera",
-                                font=("times new roman", 12, "bold"))
-        self.left_frame.place(x=30, y=70, width=820, height=680)
+                                     font=("times new roman", 12, "bold"))
+        self.left_frame.place(x=30, y=90, width=820, height=680)  # Tăng khoảng cách từ tiêu đề đến khung camera
 
         self.panel = Label(self.left_frame, borderwidth=2, relief="groove")
-
         self.panel.place(x=8, y=20, width=800, height=480)
-
-        self.cbb_session = ttk.Combobox(self.left_frame, values=["Morning", "Afternoon"])
-        self.cbb_session.place(x=20, y=530, width=120)
-        self.cbb_session.bind("<<ComboboxSelected>>", self.choose_session)
-
-        self.cbb_from = ttk.Combobox(self.left_frame, values=[])
-        self.cbb_from.place(x=200, y=530, width=40)
-        self.cbb_from.bind("<<ComboboxSelected>>", self.choose_from)
-
-        self.cbb_to = ttk.Combobox(self.left_frame, values=[])
-        self.cbb_to.place(x=295, y=530, width=40)
-        self.cbb_to.bind("<<ComboboxSelected>>", self.choose_to)
-
-        Label(self.left_frame, text="From: ", fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14)).place(x=150, y=532)
-        Label(self.left_frame, text="To: ", fg='black', border=0, bg='white', font=('Microsoft YaHei UI Light', 14)).place(x=260, y=532)
-
-        btn_add = Button(self.left_frame, text="Add", bg="#57a1f8", fg="black", command=self.add_session)
-        btn_add.place(x=500, y=530, width=50, height=25)
 
         btn_open = Button(self.left_frame, text="Open", bg="#57a1f8", fg="black", command=self.open_camera)
         btn_open.place(x=100, y=580, width=180, height=50)
@@ -87,19 +97,16 @@ class attendance:
         btn_close = Button(self.left_frame, text="Close", bg="#57a1f8", fg="black", command=self.is_clicked)
         btn_close.place(x=500, y=580, width=180, height=50)
 
-
-
         # Find section
-        # Find section - Use ONLY the Combobox
         search_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE, text="Find section class",
                                   font=("times new roman", 12, "bold"))
-        search_frame.place(x=910, y=90, width=250, height=80)
+        search_frame.place(x=10, y=800, width=250, height=80)
 
         self.var_section_class = StringVar()  # Keep this for the Combobox's value
         self.cbb_section_class = ttk.Combobox(search_frame, textvariable=self.var_section_class, state='readonly')
         self.cbb_section_class.place(x=5, y=15, width=190, height=30)
 
-        img_search = Image.open('../ImageDesign/search_icon.png')
+        img_search = Image.open('../../assets/ImageDesign/search_icon.png')
         img_search = img_search.resize((27, 27), Image.Resampling.LANCZOS)
         self.img_searchtk = ImageTk.PhotoImage(img_search)
         btn_report = Button(search_frame, command=self.search, image=self.img_searchtk, borderwidth=0)
@@ -107,46 +114,20 @@ class attendance:
 
         self.load_class_subjects()  # Load subjects AFTER creating the Combobox
 
-        self.lbl_time_session = Label(self.left_frame, text="", fg='black', border=0, bg='white',font=('Microsoft YaHei UI Light', 14))
+        self.lbl_time_session = Label(self.left_frame, text="", fg='black', border=0, bg='white',
+                                      font=('Microsoft YaHei UI Light', 14))
         self.lbl_time_session.place(x=350, y=532)
-
-        # ========== heading
-        lbl_name = Label(self.root, bg="white", text=f"Teacher:  {self.teacher_name}",
-                         font=("yu gothic ui", 15, "bold"), bd=0)
-        lbl_name.place(x=1000, y=50)
-
-
-
-        #========= print details
-        # frame_details = LabelFrame(self.root, text="Details of section", bg="white")
-        # frame_details.place(x=1200, y=60, width=300, height=150)
-        #
-        # lbl_id_subject = Label(frame_details, text=f"ID Subject: ", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_id_subject.place(x=5, y=5)
-        #
-        # lbl_credit = Label(frame_details, text=f"Credit: ", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_credit.place(x=200, y=5)
-        #
-        # lbl_name_subject = Label(frame_details, text=f"Name of Subject", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_name_subject.place(x=5, y=35)
-        #
-        # lbl_group = Label(frame_details, text=f"Group: ", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_group.place(x=5, y=65)
-        #
-        # lbl_nametc = Label(frame_details, text=f"Lecturer: ", font=("yu gothic ui", 14), fg="black", bg="white")
-        # lbl_nametc.place(x=5, y=95)
-
 
         # RIGHT FRAME
         self.Right_frame = LabelFrame(self.root, bd=2, bg="white", relief=RIDGE,
-                                         text="List of students", font=("times new roman", 12, "bold"))
-        self.Right_frame.place(x=880, y=220, width=630, height=470)
+                                      text="List of students", font=("times new roman", 12, "bold"))
+        self.Right_frame.place(x=880, y=90, width=630,
+                               height=850)  # Chỉnh lại vị trí và kích thước của khung List of Students
 
         # Tạo Treeview và Scrollbar
         self.tree = ttk.Treeview(self.Right_frame,
                                  columns=("ID", "Name", "Birth", "Time", "Date", "Section", "Status"),
-                                 show="headings", height=15)
-
+                                 show="headings", height=50)
         self.tree.heading("ID", text="ID")
         self.tree.heading("Name", text="Name")
         self.tree.heading("Birth", text="Birth")
@@ -175,19 +156,19 @@ class attendance:
 
         self.finish_btn = Button(self.root, text="Finish", command=self.finish_session,
                                  font=("times new roman", 12), bg="lightblue")
-        self.finish_btn.place(x=950, y=720, width=180, height=40)
+        self.finish_btn.place(x=950, y=930, width=180, height=40)
 
         self.export_btn = Button(self.root, text="Xuất Excel", command=self.export_excel,
-                                    font=("times new roman", 12), bg="lightblue")
-        self.export_btn.place(x=1270, y=720, width=180, height=40)
+                                 font=("times new roman", 12), bg="lightblue")
+        self.export_btn.place(x=1270, y=930, width=180, height=40)
 
     import json
 
     def load_class_subjects(self):
         try:
-            with open("../login/config.json", "r") as config_file:
+            with open("../../screen/login/config.json", "r") as config_file:
                 config_data = json.load(config_file)  # Use json.load directly
-                teacher_id = config_data['teacher_id']
+                id_teacher = config_data['id_teacher']
 
             conn = mysql.connector.connect(
                 host='localhost',
@@ -198,7 +179,7 @@ class attendance:
             )
             if conn.is_connected():
                 my_cursor = conn.cursor()
-                my_cursor.execute("SELECT id_class_subject FROM class_subject WHERE id_teacher = %s", (teacher_id,))
+                my_cursor.execute("SELECT id_class_subject FROM class_subject WHERE id_teacher = %s", (id_teacher,))
                 subjects = my_cursor.fetchall()
                 self.cbb_section_class['values'] = [subject[0] for subject in subjects]  # Populate Combobox
 
@@ -381,14 +362,14 @@ class attendance:
 
                 #==== print details
                 frame_details = LabelFrame(self.root, text="Details of section", bg="white")
-                frame_details.place(x=1200, y=60, width=300, height=150)
+                frame_details.place(x=400, y=800, width=300, height=150)
 
                 lbl_id_subject = Label(frame_details, text=f"ID Subject: {id_subject}", font=("yu gothic ui", 14), fg="black",
                                        bg="white")
                 lbl_id_subject.place(x=5, y=5)
 
                 lbl_credit = Label(frame_details, text=f"Credit: {credit}", font=("yu gothic ui", 14), fg="black", bg="white")
-                lbl_credit.place(x=200, y=5)
+                lbl_credit.place(x=500, y=5)
 
                 lbl_name_subject = Label(frame_details, text=f"{name_subject}", font=("yu gothic ui", 14), fg="black",
                                          bg="white")
@@ -425,146 +406,275 @@ class attendance:
     def export_excel(self):
         import pandas as pd
         from tkinter import messagebox
+        from datetime import datetime
+        import os
 
-        # Kiểm tra danh sách nhận diện
-        if hasattr(self, 'recognized_students') and self.recognized_students:
-            data = {"Student ID": self.recognized_students}
-            df = pd.DataFrame(data)
-            output_path = "SinhVienDaDiemDanh.xlsx"  # Đường dẫn file xuất
+        today = datetime.now().strftime("%d/%m")  # Lấy ngày hiện tại
 
-            try:
-                df.to_excel(output_path, index=False)
-                # Hiện thông báo thành công
-                messagebox.showinfo("Export Success", f"Exported successfully to {output_path}")
-            except Exception as e:
-                # Hiện thông báo lỗi nếu xảy ra
-                messagebox.showerror("Export Error", f"Failed to export: {e}")
-        else:
-            # Hiện thông báo không có dữ liệu để xuất
-            messagebox.showwarning("No Data", "No recognized students to export.")
+        # Lấy dữ liệu từ TreeView
+        attendance_data = []
+        for index, item in enumerate(self.tree.get_children(), start=1):
+            values = self.tree.item(item, "values")
+            student_id = values[0]
+            student_name = values[1]
+            class_name = values[2]
+            status = values[3] if len(values) > 3 else ""
+
+            attendance_data.append([index, student_id, student_name, class_name, status])
+
+        # Chuyển thành DataFrame
+        df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Birth", today])
+
+        # Đường dẫn file Excel
+        class_folder = self.var_section_class.get()
+        output_path = f"{class_folder}/attendance.xlsx"
+
+        try:
+            os.makedirs(class_folder, exist_ok=True)
+
+            if os.path.exists(output_path):
+                df_old = pd.read_excel(output_path)
+
+                # Xóa cột "Số lần vắng" cũ nếu có
+                if "Số lần vắng" in df_old.columns:
+                    df_old = df_old.drop(columns=["Số lần vắng"])
+
+                if today in df_old.columns:
+                    # Nếu ngày đã tồn tại -> Cập nhật lại dữ liệu
+                    df_old.drop(columns=[today], inplace=True)
+
+                # Ghép dữ liệu mới vào bên phải
+                df_old = df_old.merge(df_new, on=["STT", "Mã", "Họ và tên", "Birth"], how="left")
+            else:
+                df_old = df_new
+
+            # Tính lại số lần vắng
+            df_old["Số lần vắng"] = df_old.iloc[:, 4:].apply(lambda row: (row == "").sum(), axis=1)
+
+            # Thống kê số sinh viên đi học
+            total_students = len(df_old)
+            attended_count = df_old[today].apply(lambda x: 1 if x != "" else 0).sum()
+            attendance_summary = f"{attended_count}/{total_students}"
+
+            # Cập nhật dòng tổng kết ở cuối (nếu đã có thì sửa lại)
+            if (df_old.iloc[-1, 1] == ""):  # Kiểm tra nếu hàng cuối là thống kê
+                df_old.iloc[-1, 4] = attendance_summary
+            else:
+                summary_row = [""] * 4 + [attendance_summary] + [""] * (df_old.shape[1] - 5)
+                df_old.loc[len(df_old)] = summary_row
+
+            # Ghi file Excel
+            df_old.to_excel(output_path, index=False)
+            messagebox.showinfo("Export Success", f"Attendance updated and exported to {output_path}")
+
+        except Exception as e:
+            messagebox.showerror("Export Error", f"Failed to export: {e}")
 
     def is_clicked(self):
-        self.isClicked = True
+        try:
+            self.isClickedClose = False
+            print("Close button clicked")
+            # Thêm các lệnh để dừng camera
+            if hasattr(self, 'pipeline'):
+                self.pipeline.stop()
+            cv2.destroyAllWindows()
+
+        except Exception as e:
+            print(f"Error in is_clicked: {e}")
 
     def open_camera(self):
+        self.isClickedClose = True
         self.realtime_face_recognition()
 
-    def load_teacher_id(self):
+    def load_id_teacher(self):
         # Đọc thông tin từ tệp cấu hình
-        if os.path.exists('../login/config.json'):
-            with open('../login/config.json', 'r') as f:
+        if os.path.exists('../../screen/login/config.json'):
+            with open('../../screen/login/config.json', 'r') as f:
                 config = self.json.load(f)
-                return config.get('teacher_id', 'Unknown')
+                return config.get('id_teacher', 'Unknown')
         return 'Unknown'
 
-    def get_teacher_name(self, teacher_id):
+    def get_teacher_name(self, id_teacher, teacher_id=None):
         # Kết nối đến cơ sở dữ liệu để lấy tên giáo viên
         conn = mysql.connector.connect(host='localhost', user='root', password='', database='face_recognition_sys',
                                        port='3306')
         my_cursor = conn.cursor()
-        my_cursor.execute("SELECT name_teacher FROM teacher WHERE id_teacher=%s", (teacher_id,))
+        my_cursor.execute("SELECT name_teacher FROM teacher WHERE id_teacher=%s", (id_teacher,))
         row = my_cursor.fetchone()
         conn.close()
         if row:
             return row[0]
         return 'Unknown'
 
-    backends = [
-        'opencv',
-        'ssd',
-        'dlib',
-        'mtcnn',
-        'fastmtcnn',
-        'retinaface',
-        'mediapipe',
-        'yolov8',
-        'yunet',
-        'centerface',
-    ]
-    alignment_modes = [True, False]
-    models = ["VGG-Face", "Facenet", "Facenet512", "OpenFace", "DeepFace", "DeepID", "ArcFace", "Dlib", "SFace"]
-    metrics = ["cosine", "euclidean", "euclidean_l2"]
     img = "DataProcessed/.jpg"
-    # ham nhan dien quan trong
+
     def realtime_face_recognition(self):
-        def recognize_face(face_embedding, known_faces, threshold=1.0):
-            for student_id, db_embedding in known_faces.items():
-                dist = np.linalg.norm(face_embedding - db_embedding)
-                if dist < threshold:
-                    return student_id, dist
-            return "Unknown", None
+        self.run_face_recognition_3d_with_anti_spoofing(
+            embeddings_dir=self.embeddings_dir,
+            similarity_threshold=self.similarity_threshold,
+            frame_width=self.frame_width,
+            frame_height=self.frame_height
+        )
+# 300,1500
+    def run_face_recognition_3d_with_anti_spoofing(self, embeddings_dir='../../assets/DataEmbeddings/',
+                                                   similarity_threshold=0.5, frame_width=640, frame_height=480):
+        if not os.path.exists(embeddings_dir):
+            raise ValueError(f"Directory does not exist: {embeddings_dir}")
+        print(f"Embeddings directory: {embeddings_dir}")
 
-        frame_count = 0
-        N = 5
-        face_db = {}
-        embedding_dir = '../DataEmbeddings/'
-        for file in os.listdir(embedding_dir):
-            if file.endswith('_embedding.npy'):
-                student_id = file.split('_embedding.npy')[0]
-                face_db[student_id] = np.load(os.path.join(embedding_dir, file))
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
 
-        app = FaceAnalysis(allowed_modules=['detection', 'recognition'])
-        app.prepare(ctx_id=0, det_size=(640, 640))
+        def _load_database():
+            database = {}
+            for file in os.listdir(embeddings_dir):
+                if file.endswith("_embedding.npy"):
+                    person_id = file.split('_embedding.npy')[0]
+                    database[person_id] = np.load(os.path.join(embeddings_dir, file))
+            logger.info(f"Đã tải thành công {len(database)} embeddings")
+            return database
 
-        cap = cv2.VideoCapture(self.camera_name)
-        while True:
-            ret, frame = cap.read()
+        def _setup_face_analyzer():
+            app = FaceAnalysis(providers=['CUDAExecutionProvider'])
+            app.prepare(ctx_id=0)
+            return app
 
-            faces = app.get(frame)
-            # Vẽ các ô nhận diện lên hình ảnh
-            # frame_with_faces = frame
-            frame_with_faces = app.draw_on(frame, faces)
-            if not ret:
-                break
-            frame = cv2.resize(frame, (800, 500))
-            frame2D = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            frame_3c = cv2.cvtColor(frame2D, cv2.COLOR_GRAY2BGR)
-            frame_count += 1
-            if frame_count % N == 0:
+        def _find_best_match(embedding, database):
+            if not database:
+                return "No database loaded", 0
+            similarities = {k: cosine_similarity([embedding], [v])[0][0] for k, v in database.items()}
+            best_match = max(similarities, key=similarities.get)
+            confidence = similarities[best_match]
+            return (best_match, confidence) if confidence > similarity_threshold else ("Unknown", confidence)
+
+        def _process_face(face, database):
+            box = face.bbox.astype(int)
+            embedding = face.embedding
+            person_id, confidence = _find_best_match(embedding, database)
+            if person_id == "No database loaded" or person_id == "Unknown":
+                return box, "Unknown", confidence
+            return box, person_id, confidence
+
+        # Load dữ liệu embeddings
+        database = _load_database()
+
+        # Khởi tạo FaceAnalyzer
+        face_analyzer = _setup_face_analyzer()
+
+        executor = ThreadPoolExecutor(max_workers=2)
+        iou_threshold = 0.5  # Ngưỡng IoU để xác định hai hộp giới hạn khớp nhau
+
+        # Khởi tạo nguồn video nếu dùng video
+        if self.use_video_file:
+            cap = cv2.VideoCapture(self.video_file_path)
+            if not cap.isOpened():
+                raise ValueError(f"Không thể mở tệp video: {self.video_file_path}")
+            self.enable_anti_spoofing = False  # Tắt anti-spoofing khi dùng video
+        else:
+            self.enable_anti_spoofing = True  # Giữ nguyên logic anti-spoofing cho camera
+
+        try:
+            while True:
+                if not self.isClickedClose:
+                    break
+
+                # Lấy khung hình từ video hoặc camera
+                if self.use_video_file:
+                    ret, color_image = cap.read()
+                    if not ret:  # Kết thúc video
+                        break
+                else:
+                    result = self.face_anti_spoofing.process_frame()
+                    if result is None:
+                        continue
+                    color_image, depth_image = result
+
+                # Phát hiện khuôn mặt với InsightFace
+                faces = face_analyzer.get(color_image)
+
+                # Xử lý kết quả khuôn mặt (với hoặc không anti-spoofing)
+                if self.use_video_file:
+                    # Với video, giả định tất cả khuôn mặt là thật
+                    face_results = [
+                        {'face': dlib.rectangle(int(face.bbox[0]), int(face.bbox[1]), int(face.bbox[2]),
+                                                int(face.bbox[3])), 'is_real': True}
+                        for face in faces
+                    ]
+                else:
+                    face_results = self.face_anti_spoofing.detect_faces(color_image, depth_image)
+
+                # Tạo danh sách các hộp giới hạn của khuôn mặt thật
+                if self.enable_anti_spoofing:
+                    real_face_boxes = [
+                        [res['face'].left(), res['face'].top(), res['face'].right(), res['face'].bottom()]
+                        for res in face_results if res['is_real']
+                    ]
+                else:
+                    real_face_boxes = [
+                        [res['face'].left(), res['face'].top(), res['face'].right(), res['face'].bottom()]
+                        for res in face_results
+                    ]  # Khi tắt anti-spoofing, tất cả khuôn mặt đều được coi là thật
+
+                # Nhận diện khuôn mặt với InsightFace
+                face_futures = [executor.submit(_process_face, face, database) for face in faces]
+
                 detected_ids = []
-                for face in faces:
-                    face_embedding = face.normed_embedding
-                    face.bbox = face.bbox.astype(int)
-                    student_id, dist = recognize_face(face_embedding, face_db)
-                    detected_ids.append(student_id)
-                    if face.bbox is not None and len(face.bbox) >= 4:
-                        x1, y1, x2, y2 = map(int, face.bbox)
+                for future in face_futures:
+                    box, person_id, confidence = future.result()
 
-                        cv2.putText(frame_with_faces, f'{student_id}', (x1, y1 - 10),
-                                    cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                        cv2.rectangle(frame_with_faces, (x1, y1), (x2, y2), (255, 0, 0), 2)
-                # xuat ra excel
-                    # Lưu các ID đã nhận diện vào self.recognized_students
-                    if not hasattr(self, 'recognized_students'):
-                        self.recognized_students = []
-
-                    self.recognized_students.extend(detected_ids)
-                    self.recognized_students = list(set(self.recognized_students))  # Loại bỏ trùng lặp
-                # check file ben phai
-                current_time = datetime.now()
-                for student_id in detected_ids:
-                    if student_id in self.recognition_start_time:
-                        if (current_time - self.recognition_start_time[student_id]).total_seconds() >= 2:
-                            self.update_attendance(student_id)
-                            self.recognition_start_time.pop(student_id)
+                    # Kiểm tra xem khuôn mặt nhận diện có khớp với khuôn mặt thật không
+                    if self.enable_anti_spoofing:
+                        is_real = any(calculate_iou(box, real_box) > iou_threshold for real_box in real_face_boxes)
                     else:
-                        self.recognition_start_time[student_id] = current_time
+                        is_real = True  # Nếu tắt anti-spoofing, coi tất cả là thật
 
-                # cv2.imshow('Camera', frame_with_faces)
-                rgb_frame = cv2.cvtColor(frame_with_faces, cv2.COLOR_BGR2RGB)
+                    # Chỉ điểm danh nếu khuôn mặt là thật và nhận diện thành công
+                    if is_real and person_id != "Unknown" and confidence > similarity_threshold:
+                        detected_ids.append(person_id)
+                        current_time = datetime.now()
+                        if person_id in self.recognition_start_time:
+                            if (current_time - self.recognition_start_time[person_id]).total_seconds() >= 1:
+                                self.update_attendance(person_id)
+                                self.recognition_start_time.pop(person_id)
+                        else:
+                            self.recognition_start_time[person_id] = current_time
+
+                    # Vẽ kết quả lên ảnh
+                    color = (0, 255, 0) if is_real and person_id != "Unknown" else (0, 0, 255)
+                    label = f"{person_id} ({confidence:.2f})" if is_real else "Fake"
+                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), color, 2)
+                    cv2.putText(color_image, label, (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+
+                print("DETECT: " + ', '.join(detected_ids))
+
+                if not hasattr(self, 'recognized_students'):
+                    self.recognized_students = []
+                self.recognized_students.extend(detected_ids)
+                self.recognized_students = list(set(self.recognized_students))
+
+                # Hiển thị frame
+                rgb_frame = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
                 rgb_frame = Image.fromarray(rgb_frame)
                 tk_frame = ImageTk.PhotoImage(rgb_frame)
-
                 self.panel['image'] = tk_frame
                 self.panel.update()
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-            if self.isClicked:
-                break
 
-        cap.release()
-        cv2.destroyAllWindows()
+        except Exception as e:
+            logger.error(f"Lỗi trong quá trình xử lý: {str(e)}")
+        finally:
+            if self.use_video_file:
+                cap.release()  # Giải phóng tài nguyên video
+            logger.info("Đang dọn dẹp tài nguyên...")
+            self.face_anti_spoofing.pipeline.stop()
+            executor.shutdown()
+            cv2.destroyAllWindows()
+
+
+
 if __name__=="__main__":
     root=Tk()
     obj=attendance(root)
+
     root.mainloop()
+
+

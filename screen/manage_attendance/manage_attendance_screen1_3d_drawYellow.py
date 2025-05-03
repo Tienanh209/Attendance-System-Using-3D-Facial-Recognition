@@ -3,6 +3,7 @@ from time import strftime
 from datetime import datetime
 from tkinter import *
 from tkinter import ttk, messagebox
+import tkinter as tk
 from PIL import ImageTk, Image
 import mysql.connector
 import os
@@ -128,7 +129,13 @@ class attendance:
         self.export_btn = Button(self.root, text="Xuất ra Thống Kê", command=self.export_excel,
                                font=("times new roman", 12), bg="lightblue")
         self.export_btn.place(x=1100, y=930, width=180, height=40)
-
+        self.btn_back = tk.Button(self.root, text="Quay lại", font=("Arial", 10, "bold"),
+                                  bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
+                                  command=self.close_current_window)
+        self.btn_back.place(x=5, y=5)
+    def close_current_window(self):
+        """Đóng cửa sổ hiện tại mà không thoát toàn bộ ứng dụng"""
+        self.root.destroy()  # Đóng cửa sổ hiện tại
     def load_id_teacher(self):
         if os.path.exists('../login/config.json'):
             with open('../login/config.json', 'r') as f:

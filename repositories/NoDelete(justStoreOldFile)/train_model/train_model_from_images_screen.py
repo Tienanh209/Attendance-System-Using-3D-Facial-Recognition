@@ -33,7 +33,7 @@ class traindata:
         app.prepare(ctx_id=1, det_size=(640, 640))
 
         data_dir = '../../assets/Data/'
-        embedding_dir = '../../assets/DataEmbeddings/'
+        embedding_dir = '../DataEmbeddings/'
 
         if not os.path.exists(embedding_dir):
             os.makedirs(embedding_dir)

@@ -1,4 +1,4 @@
-#student_view.py
+#student_view_teacher.py
 import tkinter as tk
 from tkinter import ttk
 from PIL import ImageTk, Image
@@ -10,11 +10,11 @@ import json
 import cv2
 import time
 
-class student_view:
+class student_view_teacher:
     def __init__(self, root):
         self.root = root
         self.teacher_id = self.load_teacher_id()  # Load teacher_id from config
-        self.root.title("Xem thông tin sinh viên")
+        self.root.title("Quản lí sinh viên")
         self.root.geometry('925x600+300+200')
         self.root.configure(bg='#f0f0f0')  # Set background color to light gray
         self.root.resizable(False, False)
@@ -93,19 +93,19 @@ class student_view:
 
         lbl_email = tk.Label(self.right_frame, text="Email:", font=('Arial', 12), bg='#ffffff')
         lbl_email.place(x=20, y=150)
-        # btn_update_student = tk.Button(self.right_frame, text='Cập nhật', font=('Arial', 12),
-        #                                bg='#fff9c4', fg='black',  # Thay đổi màu nền và chữ
-        #                                command=self.update_student_info)
-        # btn_update_student.place(x=100, y=190)
+        btn_update_student = tk.Button(self.right_frame, text='Cập nhật', font=('Arial', 12),
+                                       bg='#fff9c4', fg='black',  # Thay đổi màu nền và chữ
+                                       command=self.update_student_info)
+        btn_update_student.place(x=100, y=190)
 
         # Thay thế các Label thành Entry
         self.entry_id = tk.Entry(self.right_frame, font=('Arial', 10), bg='#f0f0f0')
         self.entry_id.place(x=85, y=60, width=220)
-        self.entry_name = tk.Entry(self.right_frame, font=('Arial', 10), bg='#f0f0f0')
+        self.entry_name = tk.Entry(self.right_frame, font=('Arial', 10), bg='#ffffff')
         self.entry_name.place(x=85, y=90, width=220)
-        self.entry_birthday = tk.Entry(self.right_frame, font=('Arial', 10), bg='#f0f0f0')
+        self.entry_birthday = tk.Entry(self.right_frame, font=('Arial', 10), bg='#ffffff')
         self.entry_birthday.place(x=85, y=120, width=220)
-        self.entry_email = tk.Entry(self.right_frame, font=('Arial', 10), bg='#f0f0f0')
+        self.entry_email = tk.Entry(self.right_frame, font=('Arial', 10), bg='#ffffff')
         self.entry_email.place(x=85, y=150, width=220)
 
         self.img_label = tk.Label(self.right_frame, bg='#ffffff')
@@ -384,6 +384,6 @@ class student_view:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = student_view(root)
+    app = student_view_teacher(root)
     root.mainloop()
 

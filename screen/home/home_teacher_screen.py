@@ -1,11 +1,13 @@
-from time import strftime
+import subprocess
+import sys
 from datetime import datetime
 from tkinter import *
+from tkinter import messagebox
+
 from PIL import ImageTk, Image
-from screen.student_view.student_view_screen import student_view
+from screen.student_view.student_view_teacher_screen import student_view_teacher
 from screen.manage_attendance.manage_attendance_screen1_3d_drawYellow import attendance
 from screen.manage_attendance.statistic_screen import statisticExcel
-from screen.train_model.train_model_from_images_screen import traindata
 import os
 import json
 import mysql.connector
@@ -36,12 +38,12 @@ class HomeScreenTeacher:
         lbl_name.place(x=110, y=137)
 
         #=== timeline
-        lbl_time = Label(self.root, bg="white", text="", font=("yu gothic ui", 20, "bold"),
+        lbl_time = Label(self.root, bg="#e3f2fd",text="", font=("yu gothic ui", 20, "bold"),
                          fg="#57a1f8", bd=0)
-        lbl_time.place(x=154, y=502)
+        lbl_time.place(x=154, y=490)
         self.update_time(lbl_time)
 
-        lbl_date = Label(self.root, bg="white", text="", font=("yu gothic ui", 20, "bold"),
+        lbl_date = Label(self.root, bg="#e3f2fd", text="", font=("yu gothic ui", 20, "bold"),
                          fg="#57a1f8", bd=0)
         lbl_date.place(x=138, y=532)
         self.update_date(lbl_date)
@@ -57,7 +59,7 @@ class HomeScreenTeacher:
         img_student = Image.open(img_student_path)
         img_student = img_student.resize((150, 150), Image.Resampling.LANCZOS)
         self.img_studenttk = ImageTk.PhotoImage(img_student)
-        btn_student = Button(self.root, text="Danh sách sinh viên", font=("yu gothic ui", 14, "bold"), command=lambda: self.student_view(self.root),
+        btn_student = Button(self.root, text="Danh sách sinh viên", font=("yu gothic ui", 14, "bold"), command=lambda: self.student_view_teacher(self.root),
                              image=self.img_studenttk, activebackground="white", bg="white", borderwidth=0,
                              compound="top")
         btn_student.place(x=73, y=255, width=194, height=194)
@@ -93,17 +95,15 @@ class HomeScreenTeacher:
         current_date = datetime.now().strftime('%Y-%m-%d')
         lbl_date.config(text=current_date)
 
-    def student_view(self, root):
+    def student_view_teacher(self, root):
         self.new_window = Toplevel(root)
-        self.app = student_view(self.new_window)
+        self.app = student_view_teacher(self.new_window)
 
     def attendance(self):
         self.new_window = Toplevel(self.root)
         self.app = attendance(self.new_window)
 
-    def traindata(self):
-        self.new_window = Toplevel(self.root)
-        self.app = traindata(self.new_window)
+
 
     def load_teacher_id(self):
         config_file = "../login/config.json"
@@ -138,10 +138,35 @@ class HomeScreenTeacher:
             return 'Unknown'
 
     def logout(self):
-        if os.path.exists('../login/config.json'):
-            with open('../login/config.json', 'w') as f:
-                f.write('{}')
+        messagebox.showinfo("Thông báo", "Đăng xuất thành công, OK để  hiện trang login ( 6 giây ) ")
+        # Xóa dữ liệu đăng nhập
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'login', 'config.json')
+        if os.path.exists(config_path):
+            try:
+                os.remove(config_path)
+            except:
+                pass
+
+        # Giải phóng tài nguyên
         self.root.destroy()
+
+        # Khởi động lại ứng dụng không hiện terminal
+        python = sys.executable
+        main_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'main.py'))
+
+        if sys.platform == 'win32':
+            # Trên Windows
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            subprocess.Popen([python, main_path],
+                             startupinfo=startupinfo,
+                             creationflags=subprocess.CREATE_NO_WINDOW)
+        else:
+            # Trên Mac/Linux
+            subprocess.Popen([python, main_path],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             stdin=subprocess.PIPE)
 
     def open_statistic_window(self):
         new_window = Toplevel(self.root)

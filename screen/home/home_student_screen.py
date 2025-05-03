@@ -1,6 +1,10 @@
+import subprocess
+import sys
 from time import strftime
 from datetime import datetime
 from tkinter import *
+from tkinter import messagebox
+
 from PIL import ImageTk, Image
 from screen.student_view.student_view_screen import student_view
 from screen.student_view.authentication_screen import FaceAuthenticationApp
@@ -36,13 +40,13 @@ class HomeScreenStudent:
                          fg="#57a1f8", bd=0)
         lbl_name.place(x=110, y=137)
 
-        #=== timeline
-        lbl_time = Label(self.root, bg="white", text="", font=("yu gothic ui", 20, "bold"),
+        # === timeline
+        lbl_time = Label(self.root, bg="#e3f2fd", text="", font=("yu gothic ui", 20, "bold"),
                          fg="#57a1f8", bd=0)
-        lbl_time.place(x=154, y=502)
+        lbl_time.place(x=154, y=490)
         self.update_time(lbl_time)
 
-        lbl_date = Label(self.root, bg="white", text="", font=("yu gothic ui", 20, "bold"),
+        lbl_date = Label(self.root, bg="#e3f2fd", text="", font=("yu gothic ui", 20, "bold"),
                          fg="#57a1f8", bd=0)
         lbl_date.place(x=138, y=532)
         self.update_date(lbl_date)
@@ -145,11 +149,35 @@ class HomeScreenStudent:
         return 'Unknown'
 
     def logout(self):
-        if os.path.exists('../login/config.json'):
-            with open('../login/config.json', 'w') as f:
-                f.write('{}')
+        messagebox.showinfo("Thông báo", "Đăng xuất thành công, OK để  hiện trang login ( 6 giây ) ")
+        # Xóa dữ liệu đăng nhập
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'login', 'config.json')
+        if os.path.exists(config_path):
+            try:
+                os.remove(config_path)
+            except:
+                pass
+
+        # Giải phóng tài nguyên
         self.root.destroy()
 
+        # Khởi động lại ứng dụng không hiện terminal
+        python = sys.executable
+        main_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'main.py'))
+
+        if sys.platform == 'win32':
+            # Trên Windows
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            subprocess.Popen([python, main_path],
+                             startupinfo=startupinfo,
+                             creationflags=subprocess.CREATE_NO_WINDOW)
+        else:
+            # Trên Mac/Linux
+            subprocess.Popen([python, main_path],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             stdin=subprocess.PIPE)
 
 def main():
     root = Tk()  # Tạo cửa sổ Tkinter
