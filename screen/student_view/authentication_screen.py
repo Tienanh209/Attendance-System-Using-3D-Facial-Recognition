@@ -14,7 +14,7 @@ class FaceAuthenticationApp:
         self.root = root
         self.root.title("Xác Thực Khuôn Mặt")
         self.root.geometry("1000x650")
-        self.root.configure(bg="#B3E5FC")  # Màu nền xanh biển nhạt
+        self.root.configure(bg="#F0F8FF")  # Màu nền LightCyan
 
         # Khởi tạo thư mục lưu trữ embedding
         self.embedding_dir = "../../assets/datasets"
@@ -41,54 +41,57 @@ class FaceAuthenticationApp:
         self.root.destroy()  # Đóng cửa sổ hiện tại
 
     def create_widgets(self):
-        self.btn_back = tk.Button(self.root, text="Quay lại", font=("Arial", 12, "bold"),
-                                  bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
-                                  command=self.close_current_window)
-        self.btn_back.place(x=30, y=20)
+        # Nút Quay lại (góc trên bên trái)
+        self.btn_back = tk.Button(self.root, text="Quay lại", font=("Segoe UI", 11, "bold"),
+                                  bg="#6495ED", fg="white", width=10, height=2, borderwidth=0,
+                                  cursor="hand2", command=self.close_current_window)
+        self.btn_back.place(x=20, y=20)
 
+        # Tiêu đề chính
+        self.header_label = tk.Label(self.root, text="Xác Thực Khuôn Mặt", font=("Segoe UI", 26, "bold"),
+                                     bg="#F0F8FF", fg="#333333")
+        self.header_label.place(relx=0.5, y=60, anchor="center")
 
+        # Khung hiển thị video
+        self.video_frame = tk.LabelFrame(self.root, text="Camera", font=("Segoe UI", 14),
+                                         width=620, height=420, bg="#FFFFFF", bd=2, relief="groove",
+                                         labelanchor="n")
+        self.video_frame.place(x=30, y=120)
 
-        self.header_label = tk.Label(self.root, text="Xác Thực Khuôn Mặt", font=("Arial", 24, "bold"),
-                                     bg="#B3E5FC", fg="black")
-        self.header_label.place(relx=0.5, y=40, anchor="center")
-
-        self.video_frame = tk.Frame(self.root, width=640, height=400, bg="white", relief="solid",
-                                    borderwidth=2, highlightbackground="#8A2BE2", highlightthickness=3)
-        self.video_frame.place(x=60, y=100)
-
-        self.video_label = tk.Label(self.video_frame, text="Khung hiển thị camera", font=("Arial", 18, "bold"),
+        self.video_label = tk.Label(self.video_frame, text="Đang tải camera...", font=("Segoe UI", 12),
                                     bg="white")
         self.video_label.place(relx=0.5, rely=0.5, anchor="center")
 
-        self.entry_label = tk.Label(self.root, text="Nhập ID sinh viên:", font=("Arial", 14),
-                                    bg="#B3E5FC", fg="black")
-        self.entry_label.place(x=750, y=120)
+        # Nhãn và ô nhập ID sinh viên
+        self.entry_label = tk.Label(self.root, text="Nhập ID sinh viên:", font=("Segoe UI", 12),
+                                    bg="#F0F8FF", fg="#333333")
+        self.entry_label.place(x=720, y=150)
 
-        self.entry_id = tk.Entry(self.root, font=("Arial", 14), width=20, bd=2)
-        self.entry_id.place(x=750, y=150)
+        self.entry_id = tk.Entry(self.root, font=("Segoe UI", 12), width=25, bd=2, relief="solid")
+        self.entry_id.place(x=720, y=180)
         self.entry_id.bind("<Return>", self.fetch_and_display_student_info)
 
-        # Tăng chiều rộng khung thông tin để chứa nội dung tốt hơn
-        self.info_frame = tk.Frame(self.root, width=280, height=280, bg="white", relief="solid", borderwidth=2)
-        self.info_frame.place(x=710, y=200)
+        # Khung thông tin sinh viên
+        self.info_frame = tk.LabelFrame(self.root, text="Thông Tin Sinh Viên", font=("Segoe UI", 14),
+                                        width=310, height=280, bg="#FFFFFF", bd=2, relief="groove",
+                                        labelanchor="n")
+        self.info_frame.place(x=680, y=230)
 
-        # Nhãn tiêu đề "Thông Tin Sinh Viên"
-        self.info_title_label = tk.Label(self.info_frame, text="Thông Tin Sinh Viên", font=("Arial", 14, "bold"), bg="white")
-        self.info_title_label.place(relx=0.5, y=20, anchor="center")
+        self.info_label = tk.Label(self.info_frame, text="Nhập ID sinh viên\nđể xem thông tin",
+                                   font=("Segoe UI", 11), bg="white", justify="left", wraplength=280,
+                                   anchor="nw", padx=10, pady=10)
+        self.info_label.place(x=1, y=30)
 
-        # Giảm wraplength để văn bản tự động xuống dòng sớm hơn
-        self.info_label = tk.Label(self.info_frame, text="Nhập ID sinh viên\nđể xem thông tin", font=("Arial", 11), bg="white", justify="left", wraplength=220, anchor="w", padx=15)
-        self.info_label.place(x=15, y=50)
+        # Nút Lưu
+        self.btn_save = tk.Button(self.root, text="Lưu Khuôn Mặt", font=("Segoe UI", 12, "bold"),
+                                  bg="#3CB371", fg="white", width=15, height=2, borderwidth=0,
+                                  cursor="hand2", command=self.capture_and_save_embedding)
+        self.btn_save.place(x=750, y=530)
 
-        # Di chuyển nút Lưu xuống dưới để không che viền của info_frame
-        self.btn_save = tk.Button(self.root, text="Lưu", font=("Arial", 14, "bold"),
-                                  bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
-                                  command=self.capture_and_save_embedding)
-        self.btn_save.place(x=800, y=500)
-
+        # Nhãn trạng thái
         self.status_label = tk.Label(self.root, text="📷 Vui lòng nhìn thẳng vào camera",
-                                     font=("Arial", 12), fg="black", bg="#B3E5FC")
-        self.status_label.place(relx=0.5, rely=0.95, anchor="center")
+                                     font=("Segoe UI", 11), fg="#555555", bg="#F0F8FF")
+        self.status_label.place(relx=0.5, rely=0.97, anchor="center")
 
     def fetch_and_display_student_info(self, event=None):
         """Lấy thông tin sinh viên từ cơ sở dữ liệu MySQL và hiển thị"""
@@ -104,17 +107,12 @@ class FaceAuthenticationApp:
         student_data = self.fetch_student_data(student_id)
 
         if student_data:
-            # Định dạng thông tin sinh viên với khoảng cách rõ ràng và đồng đều
-            info_text = (
-                f"ID: {student_data['id']}\n"
-                f"Tên: {student_data['name']}\n"
-                f"Ngày sinh: {student_data['birthday']}\n"
-                f"Email: {student_data['email']}"
-            )
+            # Định dạng thông tin sinh viên
+            info_text = f"ID: {student_data['id']}\nTên: {student_data['name']}\nNgày sinh: {student_data['birthday']}\nEmail: {student_data['email']}"
             self.info_label.config(text=info_text)
         else:
             messagebox.showerror("❌ Lỗi", f"Không tìm thấy sinh viên với ID: {student_id}")
-            self.info_label.config(text="Nhập ID sinh viên\nđể xem thông tin")
+            self.info_label.config(text="Không tìm thấy sinh viên")
 
     def fetch_student_data(self, student_id):
         """Lấy dữ liệu sinh viên từ cơ sở dữ liệu MySQL"""
@@ -201,7 +199,7 @@ class FaceAuthenticationApp:
                     if orientation:
                         self.status_label.config(text=f"✅ {message}", fg="green")
                     else:
-                        self.status_label.config(text=f"⚠️ {message}", fg="red")
+                        self.status_label.config(text=f"⚠️ {message}", fg="orange")
 
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = cv2.resize(frame, (640, 400))
@@ -240,7 +238,7 @@ class FaceAuthenticationApp:
             elif orientation == "right":
                 base_name = f"{self.student_id}_embedding_phai"
             else:
-                self.status_label.config(text=f"⚠️ {message}. Vui lòng điều chỉnh khuôn mặt!", fg="red")
+                self.status_label.config(text=f"⚠️ {message}. Vui lòng điều chỉnh khuôn mặt!", fg="orange")
                 messagebox.showwarning("⚠️ Lỗi", "Hướng khuôn mặt không phù hợp. Vui lòng điều chỉnh và thử lại!")
                 return
 
@@ -273,11 +271,11 @@ class FaceAuthenticationApp:
             messagebox.showerror("❌ Lỗi", "Không phát hiện khuôn mặt. Vui lòng thử lại!")
 
     def close_app(self):
-        exit()
-
-
+        self.cap.release()
+        self.root.destroy()
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = FaceAuthenticationApp(root)
+    root.protocol("WM_DELETE_WINDOW", app.close_app) # Xử lý đóng cửa sổ
     root.mainloop()
