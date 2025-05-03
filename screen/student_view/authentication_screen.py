@@ -91,7 +91,7 @@ class FaceAuthenticationApp:
         # Nhãn trạng thái
         self.status_label = tk.Label(self.root, text="📷 Vui lòng nhìn thẳng vào camera",
                                      font=("Segoe UI", 11), fg="#555555", bg="#F0F8FF")
-        self.status_label.place(relx=0.5, rely=0.97, anchor="center")
+        self.status_label.place(relx=0.4, rely=0.97, anchor="center")
 
     def fetch_and_display_student_info(self, event=None):
         """Lấy thông tin sinh viên từ cơ sở dữ liệu MySQL và hiển thị"""
@@ -197,9 +197,9 @@ class FaceAuthenticationApp:
                     orientation, message = self.classify_orientation(roll, yaw, pitch)
 
                     if orientation:
-                        self.status_label.config(text=f"✅ {message}", fg="green")
+                        self.status_label.config(text=f"✅ {message}", fg="green", font=("Segoe UI", 23, "bold"))
                     else:
-                        self.status_label.config(text=f"⚠️ {message}", fg="orange")
+                        self.status_label.config(text=f"⚠️ {message}", fg="orange", font=("Segoe UI", 23, "bold"))
 
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = cv2.resize(frame, (640, 400))
