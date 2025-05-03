@@ -25,7 +25,7 @@ class FaceAuthenticationApp:
         self.app.prepare(ctx_id=0, det_size=(640, 640))
 
         # Khởi tạo webcam
-        self.cap = cv2.VideoCapture(1)
+        self.cap = cv2.VideoCapture(0)
 
         # Biến lưu ID sinh viên
         self.student_id = None
