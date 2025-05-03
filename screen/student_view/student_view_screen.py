@@ -12,7 +12,7 @@ import time
 class student_view:
     def __init__(self, root):
         self.root = root
-        self.root.title("Giao Diện Sinh Viên")
+        self.root.title("Giao Diện Xem Sinh Viên")
         self.root.geometry('1000x600+300+150')
         self.root.configure(bg='#e3f2fd')
         self.root.resizable(False, False)
@@ -27,7 +27,7 @@ class student_view:
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
         # Tên Giảng Viên
-        self.lbl_teacher_name = tk.Label(self.left_frame, text="Giáo viên: Phạm Nguyên Khang", font=('Arial', 14, 'bold'), bg='#e3f2fd')
+        self.lbl_teacher_name = tk.Label(self.left_frame, text="", font=('Arial', 14, 'bold'), bg='#e3f2fd')
         self.lbl_teacher_name.pack(pady=10)
 
         # Phần Tìm Kiếm
