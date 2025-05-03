@@ -16,14 +16,14 @@ class student_view:
         self.teacher_id = self.load_teacher_id()  # Load teacher_id from config
         self.root.title("Xem thông tin sinh viên")
         self.root.geometry('925x600+300+200')
-        self.root.configure(bg='#f0f0f0')  # Set background color to light gray
+        self.root.configure(bg='#e3f2fd')  # Set background color to light gray
         self.root.resizable(False, False)
 
         # Create frames
         self.left_frame = tk.Frame(self.root, width=300, bg='#e3f2fd')  # Set a light blue background color
         self.left_frame.pack(side=tk.LEFT, fill=tk.Y)
 
-        self.right_frame = tk.Frame(self.root, width=625, bg='#ffffff')  # Set a white background color
+        self.right_frame = tk.Frame(self.root, width=625, bg='#e3f2fd')  # Set a white background color
         self.right_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
         self.right_frame.pack_forget()  # Hide the right_frame initially
 
@@ -32,7 +32,7 @@ class student_view:
         # self.lbl_teacher_name.pack(pady=10)
 
         # Create search widgets for section class and student
-        search_frame = tk.Frame(self.left_frame, bg='#f0f0f0', pady=10)
+        search_frame = tk.Frame(self.left_frame, bg='#e3f2fd', pady=10)
         search_frame.pack(padx=10, pady=10, fill=tk.X)
 
         # # Search by section class
@@ -47,9 +47,9 @@ class student_view:
 
 
         # Search by student ID or Name
-        search_label_student = tk.Label(search_frame, text="", font=('Arial', 12, 'bold'), bg='#f0f0f0')
+        search_label_student = tk.Label(search_frame, text="", font=('Arial', 12, 'bold'), bg='#e3f2fd')
         search_label_student.grid(row=1 , column=0, padx=10, pady=(10, 0), sticky='w')
-        search_label_student = tk.Label(search_frame, text="Nhập tên:", font=('Arial', 12, 'bold'), bg='#f0f0f0')
+        search_label_student = tk.Label(search_frame, text="Nhập tên:", font=('Arial', 12, 'bold'), bg='#e3f2fd')
         search_label_student.grid(row=2, column=0, padx=10, pady=(10, 0), sticky='w')
 
         self.var_student_query = tk.StringVar()
@@ -79,19 +79,19 @@ class student_view:
         self.tree.bind("<<TreeviewSelect>>", self.on_select)
 
         # Create labels and image display for student details on right frame
-        self.lbl_title = tk.Label(self.right_frame, text='Thông tin sinh viên', font=('Arial', 16, 'bold'), bg='#ffffff')
+        self.lbl_title = tk.Label(self.right_frame, text='Thông tin sinh viên', font=('Arial', 16, 'bold'), bg='#e3f2fd')
         self.lbl_title.place(x=20, y=20)
         # Nhãn cho các trường thông tin sinh viên
-        lbl_id = tk.Label(self.right_frame, text="ID:", font=('Arial', 12), bg='#ffffff')
+        lbl_id = tk.Label(self.right_frame, text="ID:", font=('Arial', 12), bg='#e3f2fd')
         lbl_id.place(x=20, y=60)
 
-        lbl_name = tk.Label(self.right_frame, text="Tên:", font=('Arial', 12), bg='#ffffff')
+        lbl_name = tk.Label(self.right_frame, text="Tên:", font=('Arial', 12), bg='#e3f2fd')
         lbl_name.place(x=20, y=90)
 
-        lbl_birthday = tk.Label(self.right_frame, text="Sinh:", font=('Arial', 12), bg='#ffffff')
+        lbl_birthday = tk.Label(self.right_frame, text="Sinh:", font=('Arial', 12), bg='#e3f2fd')
         lbl_birthday.place(x=20, y=120)
 
-        lbl_email = tk.Label(self.right_frame, text="Email:", font=('Arial', 12), bg='#ffffff')
+        lbl_email = tk.Label(self.right_frame, text="Email:", font=('Arial', 12), bg='#e3f2fd')
         lbl_email.place(x=20, y=150)
         # btn_update_student = tk.Button(self.right_frame, text='Cập nhật', font=('Arial', 12),
         #                                bg='#fff9c4', fg='black',  # Thay đổi màu nền và chữ
@@ -99,16 +99,16 @@ class student_view:
         # btn_update_student.place(x=100, y=190)
 
         # Thay thế các Label thành Entry
-        self.entry_id = tk.Entry(self.right_frame, font=('Arial', 10), bg='#f0f0f0')
+        self.entry_id = tk.Entry(self.right_frame, font=('Arial', 10), bg='#e3f2fd')
         self.entry_id.place(x=85, y=60, width=220)
-        self.entry_name = tk.Entry(self.right_frame, font=('Arial', 10), bg='#f0f0f0')
+        self.entry_name = tk.Entry(self.right_frame, font=('Arial', 10), bg='#e3f2fd')
         self.entry_name.place(x=85, y=90, width=220)
-        self.entry_birthday = tk.Entry(self.right_frame, font=('Arial', 10), bg='#f0f0f0')
+        self.entry_birthday = tk.Entry(self.right_frame, font=('Arial', 10), bg='#e3f2fd')
         self.entry_birthday.place(x=85, y=120, width=220)
-        self.entry_email = tk.Entry(self.right_frame, font=('Arial', 10), bg='#f0f0f0')
+        self.entry_email = tk.Entry(self.right_frame, font=('Arial', 10), bg='#e3f2fd')
         self.entry_email.place(x=85, y=150, width=220)
 
-        self.img_label = tk.Label(self.right_frame, bg='#ffffff')
+        self.img_label = tk.Label(self.right_frame, bg='#e3f2fd')
         self.img_label.place(x=20, y=220)
 
         # # Nút xóa ảnh
