@@ -83,7 +83,7 @@ class HomeScreenTeacher:
                             image=self.img_reporttk, activebackground="white", bg="white", borderwidth=0,
                             compound="top")
         btn_report.place(x=649, y=255, width=194, height=194)
-
+    
     def update_time(self, lbl_time):
         current_time = datetime.now().strftime('%H:%M:%S')
         lbl_time.config(text=current_time)
@@ -146,6 +146,7 @@ class HomeScreenTeacher:
     def open_statistic_window(self):
         new_window = Toplevel(self.root)
         app = statisticExcel(new_window)
+
 
 def main():
     root = Tk()
