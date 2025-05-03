@@ -1,3 +1,4 @@
+import sys
 from time import strftime
 from datetime import datetime
 from tkinter import *
@@ -145,11 +146,27 @@ class HomeScreenStudent:
         return 'Unknown'
 
     def logout(self):
-        if os.path.exists('../login/config.json'):
-            with open('../login/config.json', 'w') as f:
-                f.write('{}')
+        from tkinter import messagebox
+        messagebox.showinfo("Thông báo", "Vui lòng đợi 5s để hiện trang đăng nhập", parent=self.root)
+        # Xóa dữ liệu đăng nhập
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'login', 'config.json')
+        if os.path.exists(config_path):
+            try:
+                os.remove(config_path)
+            except:
+                pass
+
+            # Giải phóng tất cả hình ảnh
+        for name in self.root.tk.call('image', 'names'):
+            self.root.tk.call('image', 'delete', name)
+
+            # Đóng cửa sổ
+        self.root.quit()
         self.root.destroy()
 
+        # Khởi động lại chương trình
+        python = sys.executable
+        os.execl(python, python, *sys.argv)
 
 def main():
     root = Tk()  # Tạo cửa sổ Tkinter

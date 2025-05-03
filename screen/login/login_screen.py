@@ -12,6 +12,9 @@ from screen.home.home_teacher_screen import HomeScreenTeacher
 class LoginWindow:
     def __init__(self, root):
         self.root = root
+        # Xóa tất cả hình ảnh còn tồn đọng trước khi tạo mới
+        for name in root.tk.call('image', 'names'):
+            root.tk.call('image', 'delete', name)
         self.root.title('Đăng nhập')
         self.root.geometry('925x600+300+200')
         self.root.configure(bg='#fff')
