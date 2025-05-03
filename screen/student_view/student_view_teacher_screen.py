@@ -1,4 +1,4 @@
-#student_view.py
+#student_view_teacher.py
 import tkinter as tk
 from tkinter import ttk
 from PIL import ImageTk, Image
@@ -10,7 +10,7 @@ import json
 import cv2
 import time
 
-class student_view:
+class student_view_teacher:
     def __init__(self, root):
         self.root = root
         self.teacher_id = self.load_teacher_id()  # Load teacher_id from config
@@ -384,6 +384,6 @@ class student_view:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    app = student_view(root)
+    app = student_view_teacher(root)
     root.mainloop()
 

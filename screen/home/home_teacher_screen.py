@@ -1,7 +1,7 @@
 from datetime import datetime
 from tkinter import *
 from PIL import ImageTk, Image
-from screen.student_view.student_view_screen import student_view
+from screen.student_view.student_view_teacher_screen import student_view_teacher
 from screen.manage_attendance.manage_attendance_screen1_3d_drawYellow import attendance
 from screen.manage_attendance.statistic_screen import statisticExcel
 import os
@@ -55,7 +55,7 @@ class HomeScreenTeacher:
         img_student = Image.open(img_student_path)
         img_student = img_student.resize((150, 150), Image.Resampling.LANCZOS)
         self.img_studenttk = ImageTk.PhotoImage(img_student)
-        btn_student = Button(self.root, text="Danh sách sinh viên", font=("yu gothic ui", 14, "bold"), command=lambda: self.student_view(self.root),
+        btn_student = Button(self.root, text="Danh sách sinh viên", font=("yu gothic ui", 14, "bold"), command=lambda: self.student_view_teacher(self.root),
                              image=self.img_studenttk, activebackground="white", bg="white", borderwidth=0,
                              compound="top")
         btn_student.place(x=73, y=255, width=194, height=194)
@@ -91,9 +91,9 @@ class HomeScreenTeacher:
         current_date = datetime.now().strftime('%Y-%m-%d')
         lbl_date.config(text=current_date)
 
-    def student_view(self, root):
+    def student_view_teacher(self, root):
         self.new_window = Toplevel(root)
-        self.app = student_view(self.new_window)
+        self.app = student_view_teacher(self.new_window)
 
     def attendance(self):
         self.new_window = Toplevel(self.root)
