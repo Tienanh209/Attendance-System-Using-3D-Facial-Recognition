@@ -1,6 +1,9 @@
+import subprocess
 import sys
 from datetime import datetime
 from tkinter import *
+from tkinter import messagebox
+
 from PIL import ImageTk, Image
 from screen.student_view.student_view_teacher_screen import student_view_teacher
 from screen.manage_attendance.manage_attendance_screen1_3d_drawYellow import attendance
@@ -135,13 +138,7 @@ class HomeScreenTeacher:
             return 'Unknown'
 
     def logout(self):
-        # Hiển thị thông báo popup
-        from tkinter import messagebox
-        messagebox.showinfo("Thông báo", "Vui lòng đợi 5s để hiện trang đăng nhập", parent=self.root)
-
-        # Cập nhật giao diện ngay lập tức
-        self.root.update()
-
+        messagebox.showinfo("Thông báo", "Đăng xuất thành công, OK để  hiện trang login ( 6 giây ) ")
         # Xóa dữ liệu đăng nhập
         config_path = os.path.join(os.path.dirname(__file__), '..', 'login', 'config.json')
         if os.path.exists(config_path):
@@ -150,43 +147,26 @@ class HomeScreenTeacher:
             except:
                 pass
 
-        # Giải phóng tất cả hình ảnh
-        for name in self.root.tk.call('image', 'names'):
-            self.root.tk.call('image', 'delete', name)
+        # Giải phóng tài nguyên
+        self.root.destroy()
 
-        # Tạo popup đếm ngược 5 giây
-        popup = Toplevel(self.root)
-        popup.title("Thông báo")
-        popup.geometry("300x100")
-        popup.resizable(False, False)
+        # Khởi động lại ứng dụng không hiện terminal
+        python = sys.executable
+        main_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'main.py'))
 
-        Label(popup, text="Đang đăng xuất, vui lòng chờ...").pack(pady=10)
-
-        time_left = 5
-        countdown_label = Label(popup, text=f"Thoát sau: {time_left} giây", font=('Helvetica', 12))
-        countdown_label.pack()
-
-        def update_countdown():
-            nonlocal time_left
-            time_left -= 1
-            countdown_label.config(text=f"Thoát sau: {time_left} giây")
-            if time_left > 0:
-                popup.after(1000, update_countdown)
-            else:
-                popup.destroy()
-                # Đóng cửa sổ chính sau khi popup đóng
-                self.root.quit()
-                self.root.destroy()
-                # Khởi động lại chương trình
-                python = sys.executable
-                os.execl(python, python, *sys.argv)
-
-        # Bắt đầu đếm ngược
-        popup.after(1000, update_countdown)
-
-        # Đảm bảo popup luôn trên cùng
-        popup.attributes('-topmost', True)
-        popup.grab_set()
+        if sys.platform == 'win32':
+            # Trên Windows
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            subprocess.Popen([python, main_path],
+                             startupinfo=startupinfo,
+                             creationflags=subprocess.CREATE_NO_WINDOW)
+        else:
+            # Trên Mac/Linux
+            subprocess.Popen([python, main_path],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             stdin=subprocess.PIPE)
 
     def open_statistic_window(self):
         new_window = Toplevel(self.root)

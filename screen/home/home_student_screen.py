@@ -1,7 +1,10 @@
+import subprocess
 import sys
 from time import strftime
 from datetime import datetime
 from tkinter import *
+from tkinter import messagebox
+
 from PIL import ImageTk, Image
 from screen.student_view.student_view_screen import student_view
 from screen.student_view.authentication_screen import FaceAuthenticationApp
@@ -146,8 +149,7 @@ class HomeScreenStudent:
         return 'Unknown'
 
     def logout(self):
-        from tkinter import messagebox
-        messagebox.showinfo("Thông báo", "Vui lòng đợi 5s để hiện trang đăng nhập", parent=self.root)
+        messagebox.showinfo("Thông báo", "Đăng xuất thành công, OK để  hiện trang login ( 6 giây ) ")
         # Xóa dữ liệu đăng nhập
         config_path = os.path.join(os.path.dirname(__file__), '..', 'login', 'config.json')
         if os.path.exists(config_path):
@@ -156,17 +158,26 @@ class HomeScreenStudent:
             except:
                 pass
 
-            # Giải phóng tất cả hình ảnh
-        for name in self.root.tk.call('image', 'names'):
-            self.root.tk.call('image', 'delete', name)
-
-            # Đóng cửa sổ
-        self.root.quit()
+        # Giải phóng tài nguyên
         self.root.destroy()
 
-        # Khởi động lại chương trình
+        # Khởi động lại ứng dụng không hiện terminal
         python = sys.executable
-        os.execl(python, python, *sys.argv)
+        main_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'main.py'))
+
+        if sys.platform == 'win32':
+            # Trên Windows
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            subprocess.Popen([python, main_path],
+                             startupinfo=startupinfo,
+                             creationflags=subprocess.CREATE_NO_WINDOW)
+        else:
+            # Trên Mac/Linux
+            subprocess.Popen([python, main_path],
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             stdin=subprocess.PIPE)
 
 def main():
     root = Tk()  # Tạo cửa sổ Tkinter
