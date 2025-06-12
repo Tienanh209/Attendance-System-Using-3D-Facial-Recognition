@@ -13,8 +13,6 @@ class statisticExcel:
         self.root.configure(bg="#E3F2FD")
 
 
-
-
         self.btn_back = tk.Button(self.root, text="Quay lại", font=("Arial", 12, "bold"),
                                    bg="#4699A6", fg="white", width=10, height=2, borderwidth=0,
                                    command=self.close_current_window)
