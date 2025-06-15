@@ -4,7 +4,7 @@ from datetime import datetime
 from tkinter import *
 from tkinter import ttk, messagebox
 import tkinter as tk
-from PIL import ImageTk, Image
+from PIL import ImageTk, Image, ImageDraw, ImageFont
 import mysql.connector
 import os
 import numpy as np
@@ -16,6 +16,7 @@ import time
 import math
 import warnings
 import dlib
+import pandas as pd
 
 warnings.simplefilter("ignore", category=FutureWarning)
 
@@ -53,8 +54,8 @@ class attendance:
         self.left_eye_indices = list(range(36, 42))
         self.right_eye_indices = list(range(42, 48))
         self.jaw_indices = list(range(0, 17))
-        self.tolerance = 10  # Dung sai cho so sánh chiều sâu (mm)
-        self.std_dev_threshold = 40  # Ngưỡng độ lệch chuẩn cho vùng khuôn mặt
+        self.tolerance = 15  # Dung sai cho so sánh chiều sâu (mm)
+        self.std_dev_threshold = 25  # Ngưỡng độ lệch chuẩn cho vùng khuôn mặt
 
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
         img = os.path.abspath(os.path.join(BASE_DIR, '..', '..', 'assets', 'ImageDesign', 'img.png'))
@@ -101,18 +102,18 @@ class attendance:
         self.Right_frame.place(x=880, y=90, width=630, height=850)
 
         self.tree = ttk.Treeview(self.Right_frame,
-                                columns=("ID", "Tên", "Ngày Sinh", "Thời Gian", "Ngày", "Lớp", "Trạng Thái"),
+                                columns=("ID", "Tên", "Ngày sinh", "Thời Gian", "Ngày", "Lớp", "Trạng Thái"),
                                 show="headings", height=50)
         self.tree.heading("ID", text="ID")
         self.tree.heading("Tên", text="Tên")
-        self.tree.heading("Ngày Sinh", text="Ngày Sinh")
+        self.tree.heading("Ngày sinh", text="Ngày sinh")
         self.tree.heading("Thời Gian", text="Thời Gian")
         self.tree.heading("Ngày", text="Ngày")
         self.tree.heading("Lớp", text="Lớp")
         self.tree.heading("Trạng Thái", text="Trạng Thái")
         self.tree.column("ID", width=60, anchor=CENTER)
         self.tree.column("Tên", width=150)
-        self.tree.column("Ngày Sinh", width=80)
+        self.tree.column("Ngày sinh", width=80)
         self.tree.column("Thời Gian", width=40)
         self.tree.column("Ngày", width=80)
         self.tree.column("Lớp", width=40)
@@ -291,11 +292,6 @@ class attendance:
                 break
 
     def export_excel(self):
-        import pandas as pd
-        from datetime import datetime
-        import os
-        from tkinter import messagebox
-
         today = datetime.now().strftime("%d/%m")
         attendance_data = []
         for index, item in enumerate(self.tree.get_children(), start=1):
@@ -306,18 +302,25 @@ class attendance:
             status = values[6]
             attendance_data.append([index, student_id, student_name, birthday, status])
 
-        df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Ngày Sinh", today])
+        df_new = pd.DataFrame(attendance_data, columns=["STT", "Mã", "Họ và tên", "Ngày sinh", today])
         class_folder = self.var_section_class.get()
         output_path = f"{class_folder}/attendance.xlsx"
         try:
             os.makedirs(class_folder, exist_ok=True)
             if os.path.exists(output_path):
                 df_old = pd.read_excel(output_path)
+                print('DEBUG - Các cột của df_old:', list(df_old.columns))
                 if "Số lần vắng" in df_old.columns:
                     df_old = df_old.drop(columns=["Số lần vắng"])
                 if today in df_old.columns:
                     df_old.drop(columns=[today], inplace=True)
-                df_old = df_old.merge(df_new, on=["STT", "Mã", "Họ và tên", "Ngày Sinh"], how="left")
+                # Thử chuẩn hóa tên cột ngày sinh về 'Ngày sinh'
+                for col in df_old.columns:
+                    if col.strip().lower() in ["birthday", "birth", "ngày sinh", "ngày sinh"]:
+                        print(f"DEBUG - Đổi tên cột '{col}' thành 'Ngày sinh' trong df_old")
+                        df_old = df_old.rename(columns={col: "Ngày sinh"})
+                print('DEBUG - Các cột của df_old SAU CHUẨN HÓA:', list(df_old.columns))
+                df_old = df_old.merge(df_new, on=["STT", "Mã", "Họ và tên", "Ngày sinh"], how="left")
             else:
                 df_old = df_new
 
@@ -450,6 +453,8 @@ class attendance:
         depth_max = 1500  # mm
         threshold = 1.0
         prev_time = time.time()  # Thời gian để tính FPS
+        font_path = "C:/Windows/Fonts/arial.ttf"  # Đường dẫn font Unicode, đổi nếu cần
+        font_size = 24
 
         while not self.isClickedClose:
             frames = self.pipeline.wait_for_frames()
@@ -469,14 +474,18 @@ class attendance:
             fps = round(1 / (current_time - prev_time)) if current_time != prev_time else 0
             prev_time = current_time
 
-            # Hiển thị FPS trên khung hình (số nguyên)
-            cv2.putText(color_image, f"FPS: {fps}", (10, 30),
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            # --- Vẽ FPS bằng Pillow để hỗ trợ Unicode ---
+            img_pil = Image.fromarray(cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB))
+            draw = ImageDraw.Draw(img_pil)
+            try:
+                font = ImageFont.truetype(font_path, 32)
+            except:
+                font = ImageFont.load_default()
+            draw.text((10, 10), f"FPS: {fps}", font=font, fill=(0,255,0,255))
 
             detected_ids = []
-            # Dictionary để lưu trạng thái
             if not hasattr(self, 'student_real_status'):
-                self.student_real_status = {}  # Lưu trạng thái Thực/Không Thực
+                self.student_real_status = {}
 
             for face in faces:
                 box = face.bbox.astype(int)
@@ -485,57 +494,43 @@ class attendance:
                 depth_value = depth_frame.get_distance(center_x, center_y) * 1000  # mm
                 angle = self.calculate_face_angle(face)
 
-                # Kiểm tra khoảng cách và góc mặt
+                # Vẽ khung mặt
+                draw.rectangle([box[0], box[1], box[2], box[3]], outline=(0,255,0), width=3)
+
                 if not (depth_min < depth_value < depth_max) or angle > 15:
-                    # Vẽ khung đỏ cho không hợp lệ
-                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 0, 255), 3)  # Đỏ, dày 3px
-                    cv2.putText(color_image, "Khuôn Mặt Không Hợp Lệ", (box[0], box[1] - 20),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
+                    draw.rectangle([box[0], box[1], box[2], box[3]], outline=(255,0,0), width=3)
+                    draw.text((box[0], box[1] - 20), "Khuôn Mặt Không Hợp Lệ", font=font, fill=(255,0,0,255))
                     continue
 
-                # Nhận diện 2D
                 embedding = face.normed_embedding
                 student_id, dist = self.recognize_face(embedding, face_db, threshold)
                 current_time = time.time()
 
                 if student_id == "Không xác định":
-                    # Vẽ khung vàng cho Không xác định
-                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 3)  # Vàng, dày 3px
-                    cv2.putText(color_image, "Không xác định", (box[0], box[1] - 20),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                    draw.rectangle([box[0], box[1], box[2], box[3]], outline=(128,128,128), width=3)
+                    draw.text((box[0], box[1] - 20), "Không xác định", font=font, fill=(255,255,0,255))
                     continue
 
-                # Xác minh 3D ngay lập tức
                 face_results = self.detect_faces_3d(color_image, depth_image, [face])
                 is_real = face_results[0]['is_real'] if face_results else False
                 self.student_real_status[student_id] = is_real
 
                 if is_real:
-                    # Xác minh 3D
-                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 0), 3)  # Xanh, dày 3px
-                    cv2.putText(color_image, f"Thực: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)  # Nhãn rõ ràng
-                    cv2.putText(color_image, f"Chiều sâu: {depth_value:.0f}mm", (box[0], box[3] + 25),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-                    cv2.putText(color_image, "Đã xác minh 3D", (box[0], box[3] + 50),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
-                    # Cập nhật 3D
+                    draw.rectangle([box[0], box[1], box[2], box[3]], outline=(0,255,0), width=3)
+                    draw.text((box[0], box[1] - 20), f"Thực: {student_id} ({dist:.2f})", font=font, fill=(0,255,0,255))
+                    draw.text((box[0], box[3] + 25), f"Khoảng cách: {depth_value:.0f}mm", font=font, fill=(0,0,255,255))
+                    draw.text((box[0], box[3] + 50), "Đã xác minh 3D", font=font, fill=(0,255,0,255))
                     if student_id not in self.recognition_start_time:
                         self.recognition_start_time[student_id] = current_time
-                        self.update_attendance(student_id, is_real=True)  # Tô xanh
+                        self.update_attendance(student_id, is_real=True)
                 else:
-                    # Nhận diện 2D
-                    cv2.rectangle(color_image, (box[0], box[1]), (box[2], box[3]), (0, 255, 255), 3)  # Vàng, dày 3px
-                    cv2.putText(color_image, f"Phát hiện 2D: {student_id} ({dist:.2f})", (box[0], box[1] - 20),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)  # Nhãn rõ ràng
-                    cv2.putText(color_image, f"Chiều sâu: {depth_value:.0f}mm", (box[0], box[3] + 25),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 0, 0), 2)
-                    # Cập nhật 2D
+                    draw.rectangle([box[0], box[1], box[2], box[3]], outline=(255,255,0), width=3)
+                    draw.text((box[0], box[1] - 20), f"Phát hiện 2D: {student_id} ({dist:.2f})", font=font, fill=(255,255,0,255))
+                    draw.text((box[0], box[3] + 25), f"Khoảng cách: {depth_value:.0f}mm", font=font, fill=(0,0,255,255))
                     if student_id not in self.recognition_start_time:
                         self.recognition_start_time[student_id] = current_time
-                        self.update_attendance(student_id, is_real=False)  # Tô vàng
+                        self.update_attendance(student_id, is_real=False)
 
-                # Cập nhật điểm danh
                 if student_id in self.recognition_start_time and is_real:
                     if (current_time - self.recognition_start_time[student_id]) >= capture_delay:
                         self.update_attendance(student_id, is_real=True)
@@ -547,6 +542,9 @@ class attendance:
                 self.recognized_students = []
             self.recognized_students.extend([id for id in detected_ids if id != "Không xác định"])
             self.recognized_students = list(set(self.recognized_students))
+
+            # Chuyển lại sang numpy array để hiển thị
+            color_image = cv2.cvtColor(np.array(img_pil), cv2.COLOR_RGB2BGR)
 
             rgb_frame = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
             rgb_frame = cv2.resize(rgb_frame, (800, 480))

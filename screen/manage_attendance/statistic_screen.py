@@ -68,7 +68,7 @@ class statisticExcel:
             df['STT'] = df['STT'].fillna(0).astype(int)
 
             # Đổi tên cột "Birth" thành "Ngày sinh"
-            df = df.rename(columns={"Birth": "Ngày sinh"})
+            df = df.rename(columns={"Ngày sinh": "Ngày sinh"})
 
             # Thay thế tất cả giá trị "nan" bằng "Không dữ liệu" trong DataFrame (trừ cột STT)
             columns_to_replace = [col for col in df.columns if col != 'STT']
