@@ -6,7 +6,7 @@ from tkinter import messagebox
 
 from PIL import ImageTk, Image
 from screen.student_view.student_view_teacher_screen import student_view_teacher
-from screen.manage_attendance.manage_attendance_screen1_3d_drawYellow import attendance
+from screen.manage_attendance.manage_attendance_screen import attendance
 from screen.manage_attendance.statistic_screen import statisticExcel
 import os
 import json
