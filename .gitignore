@@ -14,3 +14,7 @@ env/
 dist/
 build/
 screen/student_view/__pycache__/*.pyc
+
+assets/datasets
+assets/experimental
+assets/face_recognition_sys.sql
